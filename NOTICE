@@ -1,0 +1,14 @@
+RDR Local Server
+Copyright 2026 RDR Digital
+Licenciado sob a Apache License 2.0 (veja LICENSE).
+
+O instalador inclui o Node.js (licença MIT). Os componentes abaixo NÃO fazem parte do código deste repositório:
+são baixados de suas fontes oficiais, em tempo de execução, quando você os instala, e mantêm suas próprias licenças.
+
+Caddy (Apache-2.0) · PHP (PHP License) · Composer (MIT) · MariaDB (GPL-2.0) · PostgreSQL (PostgreSQL License)
+Redis (conforme a versão baixada; veja a licença do pacote) · Mailpit (MIT) · Adminer (Apache-2.0 / GPL-2.0)
+phpMyAdmin (GPL-2.0) · Meilisearch (MIT/BUSL conforme a versão) · Cloudflared (Apache-2.0) · rclone (MIT)
+Python (PSF License) · Go (BSD-3-Clause) · Eclipse Temurin JDK (GPL-2.0 com Classpath Exception)
+MinGit / Git for Windows (GPL-2.0) · Spring Initializr (serviço web de terceiros)
+
+Confira a licença de cada pacote na sua própria distribuição antes de redistribuir qualquer um deles.

@@ -1,0 +1,102 @@
+RDR Local - ambiente local de hospedagem com HTTPS (estilo ServBay / Laragon)
+
+INSTALADOR (recomendado)
+Execute RDR-Local-Setup-1.8.2.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
+C:\ProgramData\RDRLocal. Roda em segundo plano com icone perto do relogio (Abrir painel, Reiniciar, Sair); fechar navegador ou
+janelas nao derruba nada, e se o painel cair o icone o religa. Opcao de iniciar com o Windows. Atualizar = rodar o novo instalador por cima.
+Gerar o instalador: bash installer/build.sh (precisa de nsis e npm). Detalhes na Ajuda > Guia de instalacao.
+
+COMO USAR (modo desenvolvimento, sem instalador)
+1. Duplo clique em start.bat (pede administrador; instala o Node.js via winget se faltar).
+2. O painel abre em http://127.0.0.1:7070. No primeiro uso clique em "Instalar tudo".
+   Baixa: Caddy, PHP 8.4, Composer, MariaDB, Redis, Mailpit e Adminer (PostgreSQL opcional).
+3. "Iniciar tudo". A CA local e instalada no Windows automaticamente (certutil);
+   se o cadeado nao ficar verde, use a aba "Certificado SSL" > "Confiar na CA local" e reabra o navegador.
+4. Adicione sites: "Novo site" ou "Escanear pasta" (cada subpasta vira um site).
+
+NOVO SITE
+- Laravel novo (sempre a ultima versao) via composer create-project, com .env ajustado
+  (APP_URL, banco, e-mail, Redis), banco criado e php artisan migrate executado.
+- Starter kits: oficiais (Livewire, React, Vue) ou Breeze (Blade, Livewire, React, Vue).
+- WordPress novo (pt-BR), pasta PHP vazia ou pasta ja existente (com aliases e pasta publica).
+- Banco: MariaDB/MySQL ou PostgreSQL (PostgreSQL e instalado/iniciado automaticamente se preciso).
+
+O QUE TEM
+- Sites .test/.local/.host/.localhost com HTTPS, aliases, PHP por site (varias versoes), pasta publica automatica
+- Laravel/WordPress detectados; bloqueio de /.env, /.git e /storage/logs
+- MariaDB (3307), PostgreSQL (5433), Redis (6380), Mailpit (SMTP 1026, caixa em https://mail.test)
+- Aba Bancos de dados: listar/criar/excluir; trecho de .env pronto
+- Terminal por site (PHP/Composer da versao do site no PATH), abrir pasta, logs
+- Metricas de CPU/memoria/disco
+- Adminer em https://db.test (aba Bancos > "Abrir Adminer" ou "Abrir" ao lado de cada banco): navegar, editar linhas,
+  rodar SQL e alterar estrutura de MariaDB e PostgreSQL. Servidor e usuario vem preenchidos; senha vazia, clique em Entrar.
+  So responde para a propria maquina (127.0.0.1).
+- phpMyAdmin em https://pma.test (botao "phpMyAdmin" ao lado de cada banco MariaDB/MySQL): login automatico como root.
+  Roda em PHP 8.3 ou inferior quando houver (o phpMyAdmin ainda nao suporta o PHP mais novo). So responde para 127.0.0.1.
+- DNS local (Configuracoes > DNS local): resolve qualquer *.test para 127.0.0.1, entao aliases com curinga
+  (ex.: *.meu-app.test, para multi-tenant) funcionam sem editar o hosts. No Windows precisa de Administrador e da porta 53/UDP livre;
+  cria uma regra de DNS (NRPT) so para .test e a remove ao parar. O Diagnostico verifica o DNS.
+- Tunel publico (Processos do site > Tunel publico): gera um link https://....trycloudflare.com para mostrar o site a alguem de fora.
+  Precisa instalar o Cloudflared em Componentes (opcional). Qualquer pessoa com o link acessa o site: nao use dados reais.
+- Backup automatico (aba Bancos > Backups): diario/semanal/mensal, horario e quantos manter. So roda com o RDR Local aberto e o banco ligado
+  (se perder o horario, roda ao abrir). Backups automaticos tem a marca "auto"; so eles sao apagados pela retencao, os manuais nao.
+- Exportar/importar configuracao (Configuracoes): leva sites, portas e preferencias para outro PC (sem bancos nem arquivos dos projetos).
+- Tipos de site (Novo site): "Proxy reverso" poe HTTPS num app que ja roda em outra porta (Node, Vite, Docker, Python; use 3000 ou
+  host:porta; Docker no Windows: host.docker.internal:3000; suporta WebSocket) e "Redirecionamento" manda o dominio para outra URL.
+  Opcao "Liberar CORS" para APIs. O Diagnostico avisa se nada estiver ouvindo na porta do proxy.
+- Editor do PHP (Componentes e PHP > Configurar, por versao): ajustes comuns (memoria, upload, fuso, erros, OPcache), liga/desliga extensoes
+  e edita o php.ini inteiro. Toda alteracao e testada: se o PHP reclamar, o php.ini volta como estava. Fica um backup (php.ini.bak) para restaurar.
+  Extensoes que voce desligar nao sao religadas automaticamente. Os workers do PHP reiniciam sozinhos.
+- Meilisearch (Componentes, opcional): busca rapida para Laravel Scout, em http://127.0.0.1:7710 (modo desenvolvimento, sem chave).
+  Aparece no Painel depois de instalado. No .env: SCOUT_DRIVER=meilisearch e MEILISEARCH_HOST=http://127.0.0.1:7710 (o trecho pronto esta em Bancos > Conexao).
+- Iniciar com o Windows (Configuracoes > Inicializacao): cria uma tarefa agendada (Administrador, sem janela, sem abrir o navegador) que sobe o
+  painel ao entrar no Windows; o painel continua em http://127.0.0.1:7070. Marque tambem "Ligar os servicos automaticamente" para subir web/bancos sozinhos.
+  Precisa abrir o RDR Local como Administrador uma vez para ativar. Se abrir o start.bat com ele ja rodando, ele so abre o painel.
+- Linha de comando (em qualquer terminal do RDR Local ou com bin\shims no PATH): rdr status | start [servico] | stop [servico] | restart <servico> |
+  sites | open <dominio> | doctor | backup. Precisa do RDR Local aberto.
+- MCP para agentes de IA (Configuracoes > Conectar agentes de IA): copie o comando do Claude Code (claude mcp add rdr-local -- node ...\mcp.js)
+  ou o JSON para Claude Desktop/Cursor. Ferramentas: status, sites, diagnostico, logs, bancos, ligar/desligar servicos, backup, migrate/clear/composer install.
+  Nada destrutivo. O terminal (rdr_terminal) so existe se voce usar o JSON "com terminal liberado" (RDR_MCP_ALLOW_SHELL=1).
+- Variaveis de ambiente por site (Editar site, para sites com pasta): uma por linha, CHAVE=valor. Valem para o PHP do site, o terminal e os comandos
+  do painel, e vencem o .env. Reinicie o Servidor Web para aplicar. Ficam em config\config.json (texto puro): nao guarde segredos de producao.
+- Atualizacoes (Componentes e PHP > Verificar atualizacoes): Caddy, PHP (por versao), Mailpit, Meilisearch, Cloudflared e Adminer. O que usa o
+  componente e parado e religado sozinho; o php.ini e mantido. MariaDB e PostgreSQL nao sao atualizados automaticamente (risco para seus dados).
+- Backup e restauracao (aba Bancos): botao Backup por banco, lista de backups, Restaurar e "Restaurar de um arquivo .sql".
+  Ao excluir um banco, um backup automatico e salvo antes. Arquivos em data\backups\<motor>\.
+  Restaurar sobre um banco existente faz backup dele, apaga e recria.
+- Diagnostico (menu Diagnostico): confere extensoes do PHP, portas, hosts, CA, conexao com os bancos e o .env de cada
+  projeto (driver, porta, APP_URL), com botao para corrigir.
+- Terminal (menu Terminal, ou icone de terminal na linha do site): roda comandos na pasta do projeto, com o PHP e o
+  Composer do site no PATH, saida ao vivo, historico (setas), cd, clear e botao Parar. Um comando por vez e sem
+  interacao por teclado (tinker/perguntas: use "Abrir no CMD"). Abaixo fica o Guia de primeiros comandos
+  (Laravel, Composer, PHP, Node, Git) com botoes Executar / Editar / Copiar; comandos destrutivos pedem confirmacao.
+- Ajuda (menu Ajuda): manual do usuario, guia de instalacao, PRD, SDD, referencia CLI/API/MCP, solucao de problemas e seguranca.
+  Sao arquivos Markdown na pasta docs\ (o prefixo numerico define a ordem); basta adicionar um .md para aparecer no menu.
+- Apps de outras linguagens (Painel > Novo app): Node.js (Express, Fastify), Python (FastAPI, Flask, Django) e comando proprio (Go, Java...).
+  O RDR Local liga o processo com a variavel PORT, poe HTTPS na frente (https://app.test), guarda o log e religa se cair. Node.js e Python sao
+  baixados em Componentes e PHP > Linguagens (varias versoes). Go/Java: instale com winget e use "comando proprio". Veja Ajuda > Guia de linguagens.
+- Avisos e confirmacoes usam um modal padrao do painel (nada de caixas do navegador).
+- Processos por site (icone de processos na linha do site): queue:work, schedule:work e npm run dev (Vite), com log.
+  Logs > laravel.log mostra o ultimo arquivo de storage/logs do projeto.
+  No mesmo dialogo ha comandos rapidos: Migrate, Limpar caches, Storage link, Composer install e Migrate:fresh --seed.
+- php.ini conferido a cada inicio: extensoes comuns (MySQL, PostgreSQL, gd, intl, zip, soap...) e sendmail do Mailpit
+  sao ligados sozinhos. Se mexer no php.ini, reinicie o Web para os workers PHP recarregarem.
+
+PORTAS
+Bancos e Mailpit usam portas diferentes das padrao para conviver com ServBay/XAMPP
+(MariaDB 3307, PostgreSQL 5433, Redis 6380, Mailpit 1026/8026).
+Web usa 80/443: se o ServBay/XAMPP estiver rodando, pare-o ou troque as portas em Configuracoes.
+
+PROBLEMAS COMUNS
+- "Sem permissao para editar o hosts": abra pelo start.bat (administrador). Se persistir, o painel mostra
+  as linhas para copiar manualmente; dominios .localhost funcionam sem editar o hosts.
+- "could not find driver": reinicie o RDR Local (corrige o php.ini) e confira com: php -m | findstr /i pgsql
+- Banco novo sem tabelas (erro "relation sessions does not exist"): icone de processos do site > Migrate
+  (ou no terminal do site: php artisan migrate --force)
+- PostgreSQL nao inicia como administrador: o painel ja o inicia com token restrito (pg_ctl); veja logs/postgres.log.
+
+PASTAS (criadas ao lado do server.js)
+bin/ (componentes baixados)  data/ (bancos, CA)  config/ (config.json, Caddyfile)  logs/
+
+AINDA NAO TEM
+Memcached, DNS wildcard, acesso remoto/tunel, instalador .exe, atualizacao automatica dos componentes.

@@ -1,0 +1,15 @@
+# dados locais gerados pelo RDR Local (nunca versionar)
+/bin/
+/data/
+/config/
+/logs/
+node_modules/
+installer/dist/*.exe
+installer/dist/*.sha256
+installer/.cache/
+installer/cache/
+*.log
+.env
+.env.*
+Thumbs.db
+.DS_Store

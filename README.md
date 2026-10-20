@@ -1,2 +1,43 @@
 # RDR Local Server
-Ambiente local de hospedagem com HTTPS para Windows (PHP, Node, Python, Go, Java), com painel web, bancos e backup na nuvem.
+
+Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Laravel, apps Node, Python, Go e Java, bancos, e-mail de teste, backups (inclusive na nuvem) e integração com GitHub, tudo em um painel em `http://127.0.0.1:7070`. Zero dependências npm: o próprio Node.js vai embutido no instalador.
+
+> Status: v1.4. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
+
+## O que faz
+
+- **Sites**: PHP (Caddy + php-cgi), proxy reverso, redirecionamentos e apps supervisionados (Node, Python, Go, Java), cada um com domínio `.local`/`.test` e certificado HTTPS de uma CA local.
+- **Serviços**: MariaDB, PostgreSQL, Redis, Mailpit, Adminer/phpMyAdmin, Meilisearch, Cloudflared.
+- **Projetos**: templates (Laravel, Express/TS, Vite, Next.js, Go, Spring), terminal por site, filas/agendador.
+- **Backup**: bancos agendados, envio para Google Drive/Dropbox/S3/pasta com rclone, criptografia opcional e teste de restauração.
+- **GitHub**: login por Device Flow ou token fine-grained, clonar para um site, estado do Git e atualização segura (`pull --ff-only`).
+- **Diagnóstico**: portas em conflito (ex.: ServBay), extensões do PHP, hosts, certificado.
+
+## Instalação
+
+1. Baixe `RDR-Local-Setup-<versão>.exe` na página de *Releases* e confira o `.sha256`.
+2. Execute como Administrador. Programa em `C:\Program Files\RDR Local`, dados em `C:\ProgramData\RDRLocal`.
+3. Abra o painel, clique em **Instalar tudo** e depois em **Iniciar tudo**.
+
+Guia completo: [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
+
+## Documentação
+
+[docs/](docs/): manual, instalação, PRD, SDD, API/CLI/MCP, solução de problemas, segurança, linguagens, backup na nuvem e GitHub.
+
+## Desenvolvimento
+
+```bash
+node server.js                 # painel em http://127.0.0.1:7070 (modo desenvolvimento)
+bash installer/build.sh        # gera o instalador (precisa de nsis e npm); saída em installer/dist/
+```
+
+Variáveis úteis: `RDR_PORT`, `RDR_HOME`, `RDR_HOSTS`. Detalhes em [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
+
+## Segurança
+
+O painel **não tem autenticação** e escuta só em `127.0.0.1`. Não o exponha na rede nem por túnel. Reporte vulnerabilidades como descrito em [SECURITY.md](SECURITY.md).
+
+## Licença e marca
+
+Código sob [Apache-2.0](LICENSE). Os componentes de terceiros baixados em tempo de execução mantêm suas próprias licenças: [NOTICE](NOTICE). O nome e o logo "RDR" não estão incluídos na licença: [TRADEMARK.md](TRADEMARK.md).

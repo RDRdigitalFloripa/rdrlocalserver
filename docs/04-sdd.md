@@ -1,0 +1,131 @@
+# SDD — Software Design Document
+
+**Produto:** RDR Local Server v1.8.2
+
+## 1. Visão geral da arquitetura
+
+```
+Navegador ──► Painel (Node, 127.0.0.1:7070) ──► lib/* ──► processos filhos
+   │                    │                                   ├─ Caddy (80/443, admin 127.0.0.1:20190)
+   │                    │                                   ├─ php-cgi (workers por versão, portas 9100+)
+   │                    │                                   ├─ MariaDB / PostgreSQL / Redis
+   │                    │                                   ├─ Mailpit / Meilisearch / cloudflared
+   │                    │                                   └─ DNS UDP (opcional)
+   └── https://site.test ──► Caddy ──► php_fastcgi | reverse_proxy | redir
+```
+
+Um único processo Node (`server.js`, sem dependências npm) serve a interface estática de `public/`, expõe uma API JSON e supervisiona os serviços. O Caddy gera o certificado de cada site com `tls internal` (CA local).
+
+## 2. Módulos (`lib/`)
+
+| Módulo | Responsabilidade |
+|---|---|
+| `core.js` | Configuração (`config.json`), caminhos, log do painel, sistema de *jobs* com log consultável |
+| `services.js` | Definição e ciclo de vida dos serviços (start/stop/status), workers PHP por versão |
+| `sites.js` | Modelo de site, geração do Caddyfile (php, proxy, redirect, CORS, env), hosts, aliases |
+| `components.js` | Download/instalação de componentes, shims, `php.ini` base, consulta de versões |
+| `projects.js` | Criação de Laravel/WordPress/pasta PHP, `.env`, banco e migrate |
+| `db.js` | Listagem/criação/exclusão de bancos, backup/restauração, conexão |
+| `cloud.js` | Backup na nuvem via rclone: destinos, criptografia (crypt), envio (`copy`), retenção protegida, teste de restauração |
+| `notify.js` / `secrets.js` | Avisos (Telegram/webhook) e armazenamento de segredos em `config/secrets.json` (restrito ao usuário) |
+| `backup.js` | Agendador (tick de 60 s), retenção, execução de backup de todos os bancos |
+| `runtimes.js` | Node.js/Python/Go/Java gerenciados: versões disponíveis (nodejs.org, python-build-standalone), instalar, padrão, remover, PATH por projeto |
+| `apps.js` | Supervisor de apps: spawn com `PORT`, religamento com limite, log, detecção, `npm install`/venv+pip, modelos |
+| `procs.js` | Processos por site: queue, schedule, vite, túnel |
+| `term.js` | Terminal: execução de um comando por vez, saída por *polling* |
+| `doctor.js` | Verificações e correções do Diagnóstico |
+| `phpini.js` | Editor de php.ini com validação (probe do PHP) e backup |
+| `dns.js` | Responder DNS UDP e regra NRPT do Windows |
+| `autostart.js` | Tarefa agendada do Windows (`Register-ScheduledTask`) |
+| `updates.js` | Verificação e aplicação de atualizações |
+| `sysinfo.js` | Métricas de CPU, memória e disco |
+
+Fora de `lib/`: `rdr.js` (CLI), `mcp.js` (servidor MCP stdio), `start.bat` (modo desenvolvimento) e `start-silent.vbs` (gerado em execução).
+
+## 2.1 Instalação e execução em segundo plano
+
+```
+Atalho ──► wscript open.vbs ──► schtasks /Run "RDR Local Start" (elevado, sem UAC)
+                                   └─► launcher.vbs ──► powershell tray.ps1 (oculto)
+                                         ├─ ícone da bandeja (NotifyIcon) + menu
+                                         ├─ vigia (timer 6 s): religa o painel se cair
+                                         └─ cmd /c node.exe server.js --no-open  (RDR_HOME=C:\ProgramData\RDRLocal)
+```
+
+- Instalador NSIS (`installer/rdr-local.nsi`, gerado por `installer/build.sh`): programa em `Program Files\RDR Local\{app,runtime,launcher}`, Node.js LTS embutido, dados em `ProgramData\RDRLocal` (sobrevivem a atualizações).
+- `server.js` separa **código** (`P.app`) de **dados** (`P.root` = `RDR_HOME`).
+- Tarefas agendadas: `RDR Local Start` (sob demanda, usada pelos atalhos) e `RDR Local` (no logon, opcional; liga/desliga em Configurações → Inicialização).
+- Encerramento limpo: `POST /api/quit` aciona o `shutdown()` (para processos do site e serviços); `stop.ps1` o usa na atualização e na desinstalação.
+- Instância única da bandeja por mutex `Global\RDRLocalTray`; um segundo lançamento só abre o painel.
+
+## 3. Modelo de dados
+
+Persistência em `config/config.json` (texto puro). Campos principais:
+
+```json
+{
+  "v": 2, "tld": "test", "projectsRoot": "E:\\www", "phpDefault": "8.4",
+  "ports": { "http": 80, "https": 443, "mariadb": 3307, "postgres": 5433,
+             "redis": 6380, "mailpitSmtp": 1026, "mailpitUi": 8026, "meilisearch": 7710 },
+  "autoStartServices": false, "dnsMode": false,
+  "backup": { "enabled": false, "freq": "daily", "time": "03:00", "keep": 7, "last": 0, "lastMsg": "" },
+  "sites": [ { "domain": "app.test", "type": "php", "path": "...", "php": "8.4",
+               "aliases": [], "env": {}, "cors": false, "target": "" } ]
+}
+```
+
+`type` ∈ `php` | `proxy` | `redirect` | `app`. Sites de rede (`proxy`/`redirect`) não têm `path` nem PHP. Um `app` tem `path`, `runtime` (`node`|`python`|`go`|`java`|`custom`), `rtVersion`, `cmd` (aceita `{PORT}`), `appPort` (9300-9999), `autoStart`, `env` e `cors`; o Caddy gera `reverse_proxy 127.0.0.1:<appPort>`.
+
+## 4. Fluxos principais
+
+**Subir o Servidor Web:** gera o Caddyfile a partir dos sites → atualiza o hosts → garante a CA → inicia workers PHP (um grupo por versão em uso) → inicia o Caddy.
+
+**Criar projeto Laravel:** *job* com bloqueio → `composer create-project` → ajusta `.env` → cria banco (inicia o motor se preciso) → `artisan migrate` → registra o site → recarrega o Caddy.
+
+**Editar php.ini:** guarda baseline de avisos do PHP → grava candidato → roda sonda `php -c <dir> -r 'echo "RDR_OK";'` → aceita só se não surgirem avisos novos → mantém `.bak` → reinicia workers.
+
+**Backup agendado:** `setInterval` de 60 s verifica `isDue` → executa para cada banco → nomeia com sufixo `-auto` → poda só os `-auto` além de `keep` → grava `last`/`lastMsg`. Ao abrir o painel, recupera horário perdido.
+
+**Túnel:** inicia `cloudflared` como processo do site; a URL é extraída do log por regex `https://*.trycloudflare.com`.
+
+**Subir um app:** com o Servidor Web ativo, `apps.startAll()` percorre os sites `app` ativos → checa runtime e porta livre → `spawn` (shell, grupo de processos próprio) com PATH do runtime/`.venv` + `PORT`/`HOST` + `env` do site → log em `logs/app-<id>.log`. Se sair sem pedido de parada, religa em 1,5 s; mais de 4 saídas em 60 s → `gaveUp`.
+
+**Runtimes:** `runtimes.install` baixa o zip do Node (ou o tar.gz do Python), extrai com `tar` para `bin/<linguagem>/<major[.minor]>/` e grava `.version`. A versão padrão fica em `cfg.runtimeDefault`. A atualização (patch) para os apps, reinstala e religa.
+
+**Backup na nuvem:** `runAll()` (backup agendado) → `cloud.sync()` → `rclone copy` dos dumps (`db/`), da configuração sem segredos (`config/`) e, se ligado, de `.env` + `storage/app` dos projetos (`projects/<domínio>/`), por filtros explícitos. Com criptografia, o destino efetivo é o remote `crypt` sobre `<pasta>/encrypted`; o sal vem da própria senha (scrypt), então a mesma senha reabre os backups em outro PC. A retenção remota só apaga se houver backup recente (`lsjson --max-age`). O resultado vai para `cfg.cloud.last*` e, em falha, para `notify.event`.
+
+## 5. API HTTP
+
+Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
+
+## 6. Segurança
+
+1. Escuta apenas em 127.0.0.1.
+2. `ALLOWED_HOSTS` (127.0.0.1:porta e localhost:porta); outro `Host` → 403 (anti DNS-rebinding).
+3. POST sem `X-RDR: 1` → 403 (anti-CSRF; um site malicioso não consegue enviar o cabeçalho customizado sem preflight).
+4. Corpo limitado a 100 KB; nomes de banco restritos a letras/números/`_`.
+5. Arquivos estáticos protegidos contra *path traversal*; a Ajuda lê apenas arquivos `.md` da pasta `docs/`.
+6. Caddy bloqueia `/.env`, `/.git`, `/storage/logs`; Adminer/phpMyAdmin só para 127.0.0.1.
+7. MCP sem ferramentas destrutivas; terminal só com `RDR_MCP_ALLOW_SHELL=1`.
+8. Limitações conhecidas: sem autenticação no painel (confia na máquina), segredos de env em texto puro, bancos sem senha (apenas localhost).
+
+## 7. Decisões de projeto
+
+| Decisão | Motivo |
+|---|---|
+| Node sem dependências | Instalação trivial e superfície de supply-chain mínima |
+| Caddy com `tls internal` | HTTPS automático por site sem OpenSSL manual |
+| Workers php-cgi por versão | Várias versões de PHP simultâneas no Windows |
+| Portas alternativas de bancos | Conviver com ServBay/XAMPP |
+| MinIO fora | Edição comunitária só tem código-fonte |
+| Sem atualização automática de bancos | Proteger dados do usuário |
+| Agendador interno (não tarefa do SO) | Simplicidade; roda quando o painel está aberto |
+
+## 8. Testes e validação
+
+Validado em Linux (sandbox): Caddyfile com binário real do Caddy, php.ini com PHP real, DNS, túnel (cloudflared simulado), backups, CLI, MCP, exportar/importar e fluxo de atualizações (stubs), interface via Playwright.
+**Validar no Windows a cada versão:** NRPT/DNS, tarefa agendada, downloads reais, variáveis de ambiente no `php-cgi`.
+
+## 9. Extensão
+
+Para adicionar um serviço: definir em `services.js` (comando, porta, log), incluir na instalação em `components.js`, na `DEFAULTS.ports` (`core.js`) e na interface. Para adicionar documentação: criar um `.md` em `docs/` (o prefixo numérico define a ordem).

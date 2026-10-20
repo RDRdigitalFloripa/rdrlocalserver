@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RDR Local</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<aside class="side">
+  <div class="brand"><img src="/logo-icon.png" alt="RDR Local Server"><div><b>RDR</b><span>LOCAL SERVER</span></div></div>
+  <nav id="nav">
+    <a href="#painel" data-p="painel"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Painel</span></a>
+    <a href="#bancos" data-p="bancos"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Bancos de dados</span></a>
+    <a href="#nuvem" data-p="nuvem"><svg viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1 .5 8.5z"/><path d="M12 12v5m0-5-2 2m2-2 2 2"/></svg><span>Backup na nuvem</span></a>
+    <a href="#github" data-p="github"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="8" r="2.2"/><path d="M6 8.2v7.6M18 10.2c0 4-6 3-11 6.2"/></svg><span>GitHub</span></a>
+    <a href="#publicar" data-p="publicar"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Publicar</span></a>
+    <a href="#terminal" data-p="terminal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg><span>Terminal</span></a>
+    <a href="#diagnostico" data-p="diagnostico"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Diagnóstico</span></a>
+    <a href="#email" data-p="email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>E-mail</span></a>
+    <a href="#ssl" data-p="ssl"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Certificado SSL</span></a>
+    <a href="#componentes" data-p="componentes"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Componentes e PHP</span></a>
+    <a href="#logs" data-p="logs"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/></svg><span>Logs</span></a>
+    <a href="#config" data-p="config"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Configurações</span></a>
+    <a href="#ajuda" data-p="ajuda"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span>Ajuda</span></a>
+  </nav>
+  <div class="side-foot muted" id="sideFoot"></div>
+  <div class="side-ver">RDR LOCAL SERVER v1.8.2</div>
+</aside>
+
+<main>
+  <div id="banners"></div>
+
+  <!-- PAINEL -->
+  <section id="p-painel" class="page">
+    <div class="topbar">
+      <h1>Painel</h1>
+      <div class="row">
+        <button class="sec" id="btnStopAll">Parar tudo</button>
+        <button id="btnStartAll">Iniciar tudo</button>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="left">
+        <div id="cards" class="cards"></div>
+        <div class="card">
+          <div class="card-h">
+            <h2>Sites</h2>
+            <div class="row">
+              <button class="sec sm" id="btnImport">Importar de outro ambiente</button>
+              <button class="sec sm" id="btnScan">Escanear pasta</button>
+              <button class="sm" id="btnAddSite">Novo site</button>
+              <button class="sm" id="btnAddApp">Novo app</button>
+            </div>
+          </div>
+          <div id="sitesTable"></div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="card"><h2>Carga da CPU</h2><div id="mCpu"></div></div>
+        <div class="card"><h2>Memória</h2><div id="mMem"></div></div>
+        <div class="card"><h2>Disco</h2><div id="mDisk"></div></div>
+        <div class="card"><h2>Ambiente</h2><div id="envInfo" class="muted small"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BANCOS -->
+  <section id="p-bancos" class="page">
+    <div class="topbar"><h1>Bancos de dados</h1></div>
+    <div class="card">
+      <div class="row">
+        <select id="dbEngine"><option value="mariadb">MariaDB / MySQL</option><option value="postgres">PostgreSQL</option></select>
+        <input id="dbName" placeholder="nome_do_banco" style="width:220px">
+        <button id="btnDbCreate">Criar banco</button>
+        <button class="sec" id="btnDbRefresh">Atualizar</button>
+        <button class="sec" id="btnDbImport">Importar de outro servidor</button>
+        <span class="row" style="margin-left:auto"><a class="btn" id="btnPma" target="_blank">Abrir phpMyAdmin</a><a class="btn sec" id="btnAdminer" target="_blank">Abrir Adminer</a></span>
+      </div>
+      <p class="muted small" id="adminerHint" style="margin:10px 0 0"></p>
+      <div id="dbList" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Backups</h2>
+        <div class="row"><button class="sec sm" id="btnRestoreFile">Restaurar de um arquivo .sql</button></div></div>
+      <div class="row" id="bkSched" style="gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <label class="row" style="gap:6px"><input type="checkbox" id="bsOn"> <b>Backup automático</b></label>
+        <select id="bsFreq"><option value="daily">todo dia</option><option value="weekly">toda semana</option><option value="monthly">todo mês</option></select>
+        <span class="muted small">às</span><input type="time" id="bsTime" style="width:110px">
+        <span class="muted small">manter os últimos</span><input type="number" id="bsKeep" min="1" max="365" style="width:70px">
+        <button class="sm" id="bsSave">Salvar</button><button class="sec sm" id="bsNow">Fazer agora</button>
+      </div>
+      <p class="muted small" id="bsMsg" style="margin:0 0 12px"></p>
+      <div id="bkList"></div>
+      <p class="muted small" id="bkHint"></p>
+    </div>
+    <div class="card"><h2>Conexão (usuário local sem senha)</h2><pre id="dbConn" class="code"></pre></div>
+  </section>
+
+  <!-- BACKUP NA NUVEM -->
+  <section id="p-nuvem" class="page">
+    <div class="topbar"><h1>Backup na nuvem</h1></div>
+    <div class="card">
+      <div class="card-h"><h2>1. Ferramenta de envio (rclone)</h2><span id="clState" class="chip"></span></div>
+      <p class="muted small" style="margin:0 0 10px">O RDR Local usa o <b>rclone</b> (open source) para enviar os backups ao Google Drive, Dropbox, S3/R2/B2 ou a uma pasta. O download é conferido por SHA-256.</p>
+      <div class="row"><button id="clInstall">Instalar rclone</button></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>2. Destinos</h2><button class="sm" id="clAdd">Adicionar destino</button></div>
+      <div id="clRemotes"></div>
+      <p class="muted small" style="margin:10px 0 0">As credenciais ficam em <code id="clConf"></code>, com acesso restrito ao seu usuário. Elas <b>não</b> entram na exportação de configuração.</p>
+    </div>
+    <div class="card">
+      <h2>3. O que e como enviar</h2>
+      <div class="form">
+        <label>Destino<select id="clRemote"></select></label>
+        <label><span id="clPathLb">Pasta no destino</span><input id="clPath" placeholder="RDR-Local-Backup"></label>
+        <label>Projetos<select id="clProjects"><option value="none">Não enviar arquivos dos projetos</option><option value="essentials">Só .env e storage/app (o resto está no Git)</option></select></label>
+        <label>Apagar do destino arquivos com mais de (dias)<input id="clRetain" type="number" min="0" max="3650" placeholder="0 = nunca apagar"></label>
+        <label class="row" style="gap:8px"><input type="checkbox" id="clConfig"><span>Enviar a configuração (sem variáveis de ambiente)</span></label>
+        <label class="row" style="gap:8px"><input type="checkbox" id="clOn"><span><b>Enviar automaticamente</b> depois de cada backup agendado</span></label>
+      </div>
+      <div class="row end" style="margin-top:10px"><button id="clSave">Salvar</button></div>
+      <h3 style="margin:18px 0 6px">Criptografia (recomendada)</h3>
+      <p class="muted small" style="margin:0 0 8px">Cifra nomes e conteúdo antes de sair do seu PC: quem tiver acesso ao Drive não lê seus bancos. <b>Se perder a senha, não há como recuperar o backup.</b> Guarde-a em um gerenciador de senhas. Ela não é salva em texto.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><span class="chip" id="clEncState"></span><input type="password" id="clPass" placeholder="senha (mín. 12 caracteres)" style="min-width:240px" autocomplete="new-password"><button class="sm" id="clEncOn">Ligar criptografia</button><button class="sec sm" id="clEncOff">Desligar</button></div>
+      <h3 style="margin:18px 0 6px">Ações</h3>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="sec" id="clTest">Testar conexão</button><button id="clNow">Enviar agora</button><button class="sec" id="clVerify">Testar restauração</button></div>
+      <p class="muted small" id="clStatus" style="margin:10px 0 0"></p>
+      <p class="muted small" id="clVerifyMsg" style="margin:4px 0 0"></p>
+    </div>
+    <div class="card">
+      <h2>4. Avisos (Telegram e/ou webhook)</h2>
+      <p class="muted small" style="margin:0 0 10px">Receba uma mensagem quando um backup falhar. Token e URL ficam em um arquivo restrito (<code>config\secrets.json</code>), fora do config.json.</p>
+      <div class="form">
+        <label>Token do bot do Telegram<input id="ntToken" type="password" placeholder="deixe vazio para manter o atual" autocomplete="off"></label>
+        <label>Chat ID do Telegram<input id="ntChat" placeholder="ex.: 123456789"></label>
+        <label class="full">URL de webhook (ntfy, Discord, Slack, n8n…)<input id="ntHook" type="password" placeholder="https://… (vazio mantém o atual)" autocomplete="off"></label>
+        <label class="row" style="gap:8px"><input type="checkbox" id="ntFail"><span>Avisar quando falhar</span></label>
+        <label class="row" style="gap:8px"><input type="checkbox" id="ntOk"><span>Avisar também quando der certo</span></label>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px"><button id="ntSave">Salvar avisos</button><button class="sec" id="ntTest">Enviar teste</button><button class="sec sm" id="ntClearTg">Remover Telegram</button><button class="sec sm" id="ntClearHook">Remover webhook</button></div>
+      <p class="muted small" id="ntState" style="margin:10px 0 0"></p>
+    </div>
+  </section>
+
+  <!-- GITHUB -->
+  <section id="p-github" class="page">
+    <div class="topbar"><h1>GitHub</h1></div>
+    <div class="card">
+      <div class="card-h"><h2>1. Git</h2><span id="ghGitState" class="chip"></span></div>
+      <p class="muted small" style="margin:0 0 10px">O Git é usado para clonar e atualizar seus projetos. Se você já tem o Git no Windows, o RDR Local usa o seu; senão, instale o Git portátil (MinGit) aqui.</p>
+      <div class="row"><button id="ghGitInstall">Instalar Git (MinGit)</button></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>2. Conta</h2><span id="ghConnState" class="chip"></span></div>
+      <div id="ghDisc">
+        <p class="muted small" style="margin:0 0 10px"><b>Opção A (recomendada): login pelo navegador.</b> Crie um <i>OAuth App</i> em github.com/settings/developers, marque <b>Enable Device Flow</b> e cole o Client ID abaixo. Nenhuma senha passa por aqui. Detalhes no guia “GitHub” da Ajuda.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><input id="ghClient" placeholder="Client ID do OAuth App" style="min-width:260px" autocomplete="off"><label class="row" style="gap:6px"><input type="checkbox" id="ghPriv"><span>Acessar repositórios privados</span></label><button id="ghLogin">Conectar com o GitHub</button></div>
+        <div id="ghCode" class="muted" hidden style="margin:12px 0 0"></div>
+        <p class="muted small" style="margin:14px 0 6px"><b>Opção B: token pessoal fine-grained</b> com <code>Contents: Read</code> e <code>Metadata: Read</code> apenas nos repositórios que quiser usar.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><input id="ghToken" type="password" placeholder="github_pat_…" style="min-width:300px" autocomplete="new-password"><button class="sec" id="ghTokenSave">Usar token</button></div>
+      </div>
+      <div id="ghConn" hidden><div class="row" style="gap:8px;align-items:center"><span>Conectado como <b id="ghUser"></b></span><button class="sec sm" id="ghOut">Desconectar</button></div>
+      <p class="muted small" style="margin:8px 0 0">O token fica cifrado com o Windows (DPAPI), só para o seu usuário, e é enviado apenas a github.com. Ele não aparece em .git/config nem em URLs. Desconectar apaga daqui; para revogar de vez, apague o token no GitHub.</p></div>
+    </div>
+    <div class="card" id="ghReposCard">
+      <div class="card-h"><h2>3. Seus repositórios</h2><input id="ghSearch" placeholder="buscar…" style="max-width:220px"></div>
+      <div id="ghRepos"><div class="empty">Conecte sua conta para listar.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>4. Sites com Git</h2><button class="sec sm" id="ghRefresh">Atualizar estado</button></div>
+      <div id="ghSites"></div>
+      <p class="muted small" style="margin:10px 0 0">“Atualizar” só faz <code>git pull --ff-only</code> e recusa se houver arquivo alterado sem commit. O RDR Local não faz commit, push nem deploy.</p>
+    </div>
+  </section>
+
+  <!-- PUBLICAR -->
+  <section id="p-publicar" class="page">
+    <div class="topbar"><h1>Publicar</h1></div>
+    <p class="muted small" id="pbSsh" style="margin:0 0 10px"></p>
+    <div class="card">
+      <div class="card-h"><h2>Servidores</h2><button class="sm" id="pbAddSrv">Novo servidor</button></div>
+      <div id="pbServers" class="pb-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Receitas de publicação</h2><button class="sm" id="pbAddRc">Nova receita</button></div>
+      <p class="muted small" style="margin:0 0 10px">Uma receita é a lista de comandos que roda no servidor (ex.: atualizar os serviços do Docker Swarm). O painel <b>só executa o que está numa receita sua</b>: não há terminal livre. Antes de publicar ele confere se o código está no GitHub e se o build terminou.</p>
+      <div id="pbRecipes"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Sites antigos (FTP / FTPS / SFTP)</h2><button class="sm" id="fpAdd">Novo destino</button></div>
+      <p class="muted small" style="margin:0 0 10px">Envia só o que mudou desde a última publicação. Mostra a prévia antes, <b>nunca envia .env</b> e só apaga no servidor se você confirmar.</p>
+      <div id="fpTargets"></div>
+      <p id="fpCurl" class="muted small"></p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Chaves SSH</h2><span class="row" style="gap:8px"><button class="sec sm" id="pbGenKey">Gerar chave</button><button class="sec sm" id="pbImpKey">Importar</button></span></div>
+      <div id="pbKeys"></div>
+      <p class="muted small" style="margin:10px 0 0">A chave privada fica cifrada com o Windows (DPAPI) e nunca é mostrada. Só a chave pública aparece, para você colocar no <code>authorized_keys</code> do servidor.</p>
+    </div>
+  </section>
+
+  <!-- TERMINAL -->
+  <section id="p-terminal" class="page">
+    <div class="topbar"><h1>Terminal</h1>
+      <div class="row"><select id="tmSite" style="min-width:200px"></select><button class="sec sm" id="tmExternal">Abrir no CMD</button><button class="sec sm" id="tmClear">Limpar</button></div>
+    </div>
+    <div class="card term">
+      <pre id="tmOut" class="tm-out">Selecione um site e digite um comando. Ele roda na pasta do projeto, com o PHP e o Composer do site já no PATH.</pre>
+      <form id="tmForm" class="tm-in" autocomplete="off">
+        <span id="tmPrompt" class="tm-prompt">&gt;</span>
+        <input id="tmIn" placeholder="php artisan migrate --force" spellcheck="false">
+        <button type="submit" id="tmRun">Executar</button>
+        <button type="button" class="bad" id="tmStop" hidden>Parar</button>
+      </form>
+      <p class="muted small" style="margin:8px 0 0">Um comando por vez, sem interação por teclado (nada de tinker ou perguntas): para isso use “Abrir no CMD”. Setas ↑ ↓ repetem comandos anteriores; <code>cd pasta</code> funciona; <code>clear</code> limpa a tela.</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Guia de primeiros comandos</h2><div class="row" id="tmGroups"></div></div>
+      <p class="muted small" id="tmGuideNote" style="margin:0 0 6px"></p>
+      <div id="tmGuide"></div>
+    </div>
+  </section>
+
+  <!-- DIAGNÓSTICO -->
+  <section id="p-diagnostico" class="page">
+    <div class="topbar"><h1>Diagnóstico</h1><div class="row"><span id="dgSum" class="muted"></span><button id="btnDoctor">Verificar agora</button></div></div>
+    <div id="dgBox"><div class="card empty">Clique em “Verificar agora”.</div></div>
+  </section>
+
+  <!-- EMAIL -->
+  <section id="p-email" class="page">
+    <div class="topbar"><h1>E-mail de testes (Mailpit)</h1></div>
+    <div class="card">
+      <p class="muted" style="margin-top:0">Todo e-mail enviado pelos seus projetos fica retido aqui, nada sai para a internet.</p>
+      <div class="row"><a id="mailLink" class="btn" target="_blank">Abrir caixa de entrada</a><span id="mailState" class="muted"></span></div>
+    </div>
+    <div class="card"><h2>Configuração para Laravel / PHP</h2><pre id="mailConf" class="code"></pre></div>
+  </section>
+
+  <!-- SSL -->
+  <section id="p-ssl" class="page">
+    <div class="topbar"><h1>Certificado SSL</h1></div>
+    <div class="card">
+      <p style="margin-top:0">O RDR Local cria uma autoridade certificadora (CA) própria e emite um certificado para cada site. Ao confiar na CA no Windows, o navegador mostra o cadeado verde sem avisos.</p>
+      <div class="row"><span id="caState" class="chip"></span><button id="btnTrust">Confiar na CA local</button></div>
+      <p class="muted small" id="caPath"></p>
+    </div>
+    <div class="card"><h2>Sites com HTTPS</h2><div id="sslList"></div></div>
+  </section>
+
+  <!-- COMPONENTES -->
+  <section id="p-componentes" class="page">
+    <div class="topbar"><h1>Componentes e PHP</h1>
+      <div class="row"><label class="muted small"><input type="checkbox" id="chkPg"> incluir PostgreSQL</label><button id="btnInstallAll">Instalar tudo (recomendado)</button></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Atualizações</h2><button class="sec sm" id="btnUpdCheck">Verificar atualizações</button></div>
+      <div id="updList" class="muted small">Clique em “Verificar atualizações” para comparar com as versões mais novas (Caddy, PHP, Node.js, Python, Mailpit, Meilisearch, Cloudflared, Adminer). MariaDB e PostgreSQL não são atualizados automaticamente, para não arriscar seus dados.</div>
+    </div>
+    <div class="card"><h2>Componentes</h2><div id="compList"></div></div>
+    <div class="card">
+      <h2>Versões do PHP</h2>
+      <div id="phpList"></div>
+      <div class="row" style="margin-top:12px"><select id="phpAvail"></select><button id="btnPhpInstall">Instalar versão</button><button class="sec" id="btnPhpLoad">Ver versões disponíveis</button></div>
+    </div>
+    <div class="card">
+      <h2>Linguagens — Node.js, Python, Go e Java</h2>
+      <p class="muted small" style="margin:0 0 10px">Várias versões lado a lado: cada app escolhe a sua e o terminal do site já usa a versão certa. Outras linguagens (Rust, PHP-CLI, .NET…) entram em “Novo app” com comando próprio (veja Ajuda &gt; Guia de linguagens).</p>
+      <div id="rtList"></div>
+      <div class="row" style="margin-top:12px"><select id="rtKind"><option value="node">Node.js</option><option value="python">Python</option><option value="go">Go</option><option value="java">Java (JDK)</option></select><select id="rtAvail"></select><button id="btnRtInstall">Instalar versão</button><button class="sec" id="btnRtLoad">Ver versões disponíveis</button></div>
+    </div>
+  </section>
+
+  <!-- LOGS -->
+  <section id="p-logs" class="page">
+    <div class="topbar"><h1>Logs</h1><select id="logSel"></select></div>
+    <div class="card"><pre id="logBox" class="code tall">—</pre></div>
+  </section>
+
+  <!-- CONFIG -->
+  <section id="p-config" class="page">
+    <div class="topbar"><h1>Configurações</h1></div>
+    <div class="card">
+      <div class="form">
+        <label>Terminação dos domínios<select id="cfTld"></select></label>
+        <p class="muted small" id="cfPanelUrl" style="margin:0 0 8px"></p>
+        <label>Pasta raiz dos projetos<input id="cfRoot" placeholder="E:\www"></label>
+        <label>PHP padrão<select id="cfPhp"></select></label>
+      </div>
+      <h2 style="margin-top:18px">Inicialização</h2>
+      <label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" id="cfBoot" style="margin-top:4px">
+        <span>Abrir o RDR Local junto com o Windows<br><span class="muted small" id="cfBootHint">Cria uma tarefa agendada (como Administrador, sem janela e sem pedir permissão a cada login). O painel continua em <code>http://127.0.0.1:7070</code>.</span></span></label>
+      <label class="row" style="gap:10px;align-items:flex-start;margin-top:8px"><input type="checkbox" id="cfAutoSvc" style="margin-top:4px">
+        <span>Ligar os serviços automaticamente ao abrir o RDR Local<br><span class="muted small">Web, bancos, Redis, Mailpit… os que estiverem instalados (igual a “Iniciar tudo”).</span></span></label>
+      <h2 style="margin-top:18px">DNS local</h2>
+      <label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" id="cfDns" style="margin-top:4px">
+        <span>Resolver os domínios por um DNS local (recomendado)<br><span class="muted small">Permite subdomínios com curinga (ex.: <code>*.meu-app.test</code> para multi-tenant) e dispensa depender do arquivo hosts. No Windows cria uma regra de DNS só para a terminação do RDR (precisa de Administrador e da porta 53/UDP livre). O arquivo hosts continua sendo atualizado quando possível.</span></span></label>
+      <h2 style="margin-top:18px">Portas</h2>
+      <div class="form ports" id="cfPorts"></div>
+      <p class="muted small">Bancos usam portas diferentes das padrão (3307, 5433, 6380) para conviver com ServBay/XAMPP. Web em 80/443 dá URLs limpas — se outro programa usa essas portas, pare-o ou troque aqui (a URL passa a incluir a porta).</p>
+      <button id="btnSaveCfg">Salvar</button>
+      <h2 style="margin-top:18px">Conectar agentes de IA (MCP)</h2>
+      <p class="muted small">Deixa o Claude, Cursor, Codex e similares consultarem e controlarem o RDR Local: ver serviços e logs, rodar o Diagnóstico, ligar/desligar serviços, backup, migrate. Nada destrutivo é exposto (sem excluir banco ou site). O RDR Local precisa estar aberto.</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px"><button class="sec sm" data-a="mcpCopy" data-k="cli">Copiar comando do Claude Code</button><button class="sec sm" data-a="mcpCopy" data-k="json">Copiar JSON (Claude Desktop, Cursor…)</button><button class="sec sm" data-a="mcpCopy" data-k="jsonShell">JSON com terminal liberado</button></div>
+      <p class="muted small" style="margin:8px 0 0">O “terminal liberado” deixa o agente executar comandos na pasta dos seus projetos — só use com agentes em que você confia.</p>
+      <h2 style="margin-top:18px">Exportar / importar configuração</h2>
+      <p class="muted small">Leva seus sites, portas e preferências para outro PC (ou guarda um backup deles). Não inclui bancos de dados nem arquivos dos projetos. Ao importar, sites que já existem são mantidos.</p>
+      <div class="row"><button class="sec" id="btnCfgExp">Exportar</button><button class="sec" id="btnCfgImp">Importar…</button><input type="file" id="cfgFile" accept=".json,application/json" hidden></div>
+    </div>
+  </section>
+<section id="p-ajuda" class="page">
+  <div class="topbar"><h1>Ajuda</h1><span class="muted small">Manuais, PRD, SDD e documentação técnica</span></div>
+  <div class="help">
+    <nav id="helpNav" class="help-nav"></nav>
+    <article id="helpBody" class="card md"><p class="muted">Carregando…</p></article>
+  </div>
+</section>
+<footer class="app-foot">desenvolvido por <b>RDR Digital</b></footer>
+</main>
+
+<!-- jobs -->
+<div id="jobs" class="jobs" hidden>
+  <div class="jobs-h"><b id="jobTitle"></b><span id="jobStatus" class="chip"></span><button class="sec sm" id="jobClose">Fechar</button></div>
+  <pre id="jobLog"></pre>
+</div>
+
+<!-- modal padrão (alert / confirm / prompt) -->
+<dialog id="uiDlg" class="ui">
+  <form id="uiForm">
+    <div class="ui-head"><span class="ui-ico" id="uiIco"></span><h3 id="uiTitle"></h3></div>
+    <div id="uiMsg" class="ui-msg"></div>
+    <pre id="uiPre" class="code" hidden></pre>
+    <label id="uiField" class="ui-field" hidden><span id="uiLabel"></span><input id="uiInput" autocomplete="off"></label>
+    <div class="row end"><button type="button" class="sec" id="uiCancel">Cancelar</button><button type="submit" id="uiOk">OK</button></div>
+  </form>
+</dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<!-- processos do site -->
+<dialog id="procDlg">
+  <h3 id="procTitle">Processos</h3>
+  <div id="procBody"></div>
+  <div class="row end"><button type="button" class="sec" id="procClose">Fechar</button></div>
+</dialog>
+
+<!-- restaurar -->
+<dialog id="restoreDlg">
+  <form method="dialog" id="restoreForm">
+    <h3>Restaurar banco</h3>
+    <div class="form">
+      <label class="full">Origem<input name="source" required placeholder="arquivo da lista ou caminho completo de um .sql"></label>
+      <label>Restaurar no banco<input name="target" required placeholder="nome_do_banco"></label>
+      <label>Se já existir, digite o nome para confirmar<input name="confirm" placeholder="(só se o banco já existir)"></label>
+    </div>
+    <p class="muted small" style="margin:12px 0 0">Se o banco de destino já existir, o RDR Local faz um backup dele, apaga e recria a partir do arquivo.</p>
+    <div class="row end"><button type="button" class="sec" id="restoreCancel">Cancelar</button><button type="submit">Restaurar</button></div>
+  </form>
+</dialog>
+
+<!-- site dialog -->
+<dialog id="phpDlg" style="width:min(760px,94vw)">
+  <h3 id="phpTitle">PHP</h3>
+  <div class="row" style="gap:6px;margin:8px 0"><button class="sec sm" data-a="phpTab" data-tab="Set">Ajustes</button><button class="sec sm" data-a="phpTab" data-tab="Ext">Extensões</button><button class="sec sm" data-a="phpTab" data-tab="Raw">php.ini (texto)</button></div>
+  <div id="phpTabSet"><div class="form" id="phpSetForm"></div><div class="row end" style="margin-top:12px"><button id="phpSetSave">Salvar ajustes</button></div></div>
+  <div id="phpTabExt" hidden><input id="phpExtFilter" placeholder="Filtrar extensões…" style="width:100%;margin-bottom:8px"><div id="phpExtList" class="ext-grid"></div></div>
+  <div id="phpTabRaw" hidden><textarea id="phpRaw" spellcheck="false" style="width:100%;height:340px;font-family:monospace;font-size:12px"></textarea>
+    <div class="row end" style="margin-top:8px"><button class="sec" id="phpRestore">Restaurar backup anterior</button><button id="phpRawSave">Salvar php.ini</button></div></div>
+  <p class="muted small" id="phpNote" style="margin:10px 0 0">Ao salvar, o RDR Local testa o php.ini; se o PHP reclamar, a alteração é desfeita. Os workers do PHP reiniciam sozinhos.</p>
+  <div class="row end"><button type="button" class="sec" id="phpClose">Fechar</button></div>
+</dialog>
+
+<dialog id="ghDlg">
+  <form method="dialog" id="ghForm">
+    <h3>Clonar repositório</h3>
+    <div class="form">
+      <label class="full">Repositório<input name="full" readonly></label>
+      <label>Nome do site<input name="name" required></label>
+      <label>Domínio (opcional)<input name="domain" placeholder="automático: nome.local"></label>
+      <label class="full">Pasta de destino (opcional)<input name="dir" placeholder="padrão: pasta raiz dos projetos"></label>
+      <label class="row full" style="gap:8px"><input type="checkbox" name="createDb"><span>Se for Laravel/PHP: criar um banco MariaDB e ajustar o .env</span></label>
+    </div>
+    <p class="muted small">Se tiver composer.json, roda <code>composer install</code>, cria o .env e gera a APP_KEY. As migrations <b>não</b> são executadas.</p>
+    <div class="row end"><button type="button" class="sec" id="ghCancel">Cancelar</button><button type="submit">Clonar</button></div>
+  </form>
+</dialog>
+<dialog id="impDlg">
+  <form method="dialog" id="impForm">
+    <h3>Importar sites de outro ambiente</h3>
+    <p class="muted small" style="margin:0 0 10px">Lê só a configuração do ServBay, Laragon ou XAMPP (nada é alterado lá) e cria sites aqui apontando para <b>as mesmas pastas</b>. Bancos de dados não são movidos: use backup e restauração na aba Bancos.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><select id="impSrc" style="flex:1 1 240px;min-width:0"></select><input id="impPath" placeholder="ou informe uma pasta/arquivo .conf" style="flex:1 1 240px;min-width:0"><button type="button" class="sec" id="impScan">Ler</button></div>
+    <div id="impList" style="margin-top:12px;max-height:46vh;overflow:auto"></div>
+    <p class="muted small" id="impWarn" style="margin:10px 0 0"></p>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="impCancel">Fechar</button><button type="button" id="impRun" disabled>Importar selecionados</button></div>
+  </form>
+</dialog>
+<dialog id="dbiDlg">
+  <form method="dialog" id="dbiForm">
+    <h3>Importar bancos de outro servidor</h3>
+    <p class="muted small" style="margin:0 0 10px">Copia bancos MySQL/MariaDB de um servidor <b>ligado neste PC</b> (ServBay, Laragon, XAMPP) para o MariaDB do RDR Local e confere tabelas e linhas. A origem só é lida. O arquivo .sql fica guardado em Backups.</p>
+    <div class="form">
+      <label>Porta da origem<input id="dbiPort" type="number" placeholder="3306" min="1024" max="65535"></label>
+      <label>Usuário<input id="dbiUser" value="root" autocomplete="off"></label>
+      <label class="full">Senha (não é gravada)<input id="dbiPass" type="password" autocomplete="new-password" placeholder="vazio se não tiver"></label>
+    </div>
+    <div class="row" style="margin-top:8px;gap:8px;align-items:center"><button type="button" class="sec" id="dbiConnect">Conectar e listar</button><span class="muted small" id="dbiHint"></span></div>
+    <div id="dbiList" style="margin-top:12px;max-height:40vh;overflow:auto"></div>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="dbiCancel">Fechar</button><button type="button" id="dbiRun" disabled>Importar selecionados</button></div>
+  </form>
+</dialog>
+<dialog id="pbSrvDlg">
+  <form method="dialog" id="pbSrvForm">
+    <h3 id="pbSrvTitle">Novo servidor</h3>
+    <div class="form">
+      <label>Nome<input name="name" required placeholder="VPS RDR Digital"></label>
+      <label>Grupo (opcional)<input name="group" placeholder="Produção"></label>
+      <label>Host (IP ou domínio)<input name="host" required placeholder="203.0.113.10"></label>
+      <label>Porta<input name="port" type="number" value="22" min="1" max="65535"></label>
+      <label>Usuário<input name="user" value="root"></label>
+      <label>Chave SSH<select name="keyId"></select></label>
+    </div>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="pbSrvCancel">Cancelar</button><button type="submit">Salvar</button></div>
+  </form>
+</dialog>
+<dialog id="pbKeyDlg">
+  <form method="dialog" id="pbKeyForm">
+    <h3 id="pbKeyTitle">Chave SSH</h3>
+    <div class="form"><label class="full">Nome<input name="label" required placeholder="rdr-local"></label>
+    <label class="full" id="pbKeyPrivLb">Chave privada (cole o arquivo inteiro)<textarea name="priv" rows="6" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----" spellcheck="false" autocomplete="off"></textarea></label></div>
+    <p class="muted small" id="pbKeyNote"></p>
+    <div class="row end"><button type="button" class="sec" id="pbKeyCancel">Cancelar</button><button type="submit" id="pbKeyOk">Salvar</button></div>
+  </form>
+</dialog>
+<dialog id="pbRcDlg">
+  <form method="dialog" id="pbRcForm">
+    <h3 id="pbRcTitle">Nova receita</h3>
+    <div class="form">
+      <label>Nome<input name="name" required placeholder="ListGo produção"></label>
+      <label>Servidor<select name="serverId"></select></label>
+      <label>Site local (confere Git e build)<select name="siteId"></select></label>
+      <label>Branch<input name="branch" value="main"></label>
+      <label class="full">Tipo<select name="mode"><option value="swarm">Docker Swarm (imagem do GHCR)</option><option value="custom">Comandos próprios</option></select></label>
+      <div class="full form" data-m="swarm" style="grid-column:1/-1">
+        <label class="full">Imagem<input name="image" placeholder="ghcr.io/rdrdigitalfloripa/listgo:latest"></label>
+        <label class="full">Serviços do Swarm (separe por espaço)<input name="services" placeholder="listgo_app listgo_worker"></label>
+        <label class="full">Passos extras depois (um comando por linha)<textarea name="extra" rows="3" placeholder="docker exec $(docker ps -q -f name=listgo_app | head -n1) php artisan optimize:clear"></textarea></label>
+      </div>
+      <label class="full" data-m="custom" style="display:none">Comandos (um por linha, rodam em ordem; para no primeiro que falhar)<textarea name="cmds" rows="5" spellcheck="false"></textarea></label>
+      <label class="row full" style="gap:8px"><input type="checkbox" name="checkBuild" checked><span>Exigir build do GitHub Actions concluído antes de publicar</span></label>
+    </div>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="pbRcCancel">Cancelar</button><button type="submit">Salvar</button></div>
+  </form>
+</dialog>
+<dialog id="fpDlg">
+  <form method="dialog" id="fpForm">
+    <h3 id="fpTitle">Novo destino</h3>
+    <div class="form">
+      <label>Nome<input name="name" required placeholder="Site antigo do cliente X"></label>
+      <label>Protocolo<select name="protocol"><option value="ftps">FTPS (FTP com TLS)</option><option value="sftp">SFTP (SSH)</option><option value="ftp">FTP simples (inseguro)</option></select></label>
+      <label data-f="net">Host<input name="host" placeholder="ftp.meusite.com.br"></label>
+      <label data-f="net">Porta<input name="port" type="number" value="21"></label>
+      <label data-f="net">Usuário<input name="user" autocomplete="off"></label>
+      <label data-f="net">Senha<input name="password" type="password" autocomplete="new-password" placeholder="(deixe vazio para manter)"></label>
+      <label data-f="ssh" style="display:none" class="full">Servidor SSH cadastrado<select name="serverId"></select></label>
+      <label>Site local<select name="siteId"></select></label>
+      <label>Subpasta local (opcional)<input name="localSub" placeholder="public"></label>
+      <label class="full">Pasta no servidor<input name="remoteDir" placeholder="public_html  (sem / no começo = a partir da pasta inicial)"></label>
+      <label class="full">Ignorar também (um padrão por linha; já ignora .env, .git/, node_modules/)<textarea name="excludes" rows="3" spellcheck="false" placeholder="storage/&#10;*.log"></textarea></label>
+      <label class="row full" style="gap:8px" data-f="tls"><input type="checkbox" name="insecureTls"><span>Aceitar certificado que não confere (inseguro; só se o provedor usa certificado de outro nome)</span></label>
+    </div>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="fpCancel">Cancelar</button><button type="submit">Salvar</button></div>
+  </form>
+</dialog>
+<dialog id="fpPlanDlg">
+  <form method="dialog" id="fpPlanForm">
+    <h3 id="fpPlanTitle">Publicar</h3>
+    <div id="fpPlanBody"></div>
+    <label class="row" style="gap:8px;margin-top:8px;display:none" id="fpDelLb"><input type="checkbox" id="fpDel"><span>Apagar no servidor os arquivos removidos aqui</span></label>
+    <div class="row end" style="margin-top:10px;gap:8px"><button type="button" class="sec" id="fpPlanCancel">Cancelar</button><button type="button" class="sec" id="fpBase" style="display:none">Já está igual no servidor</button><button type="button" id="fpPlanRun">Publicar</button></div>
+  </form>
+</dialog>
+<dialog id="pbPubDlg">
+  <form method="dialog" id="pbPubForm">
+    <h3 id="pbPubTitle">Publicar</h3>
+    <div id="pbPubChecks" style="margin:8px 0"></div>
+    <pre class="code" id="pbPubSteps" style="max-height:180px;overflow:auto"></pre>
+    <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="pbPubCancel">Cancelar</button><button type="button" id="pbPubRun">Publicar</button></div>
+  </form>
+</dialog>
+<dialog id="clDlg">
+  <form method="dialog" id="clForm">
+    <h3>Adicionar destino</h3>
+    <div class="form">
+      <label class="full">Tipo<select name="kind" id="clKind"></select></label>
+      <label class="full">Nome do destino<input name="name" required placeholder="meu-drive" pattern="[A-Za-z][A-Za-z0-9_\-]{0,30}"></label>
+      <div class="full form" data-k="drive" style="grid-column:1/-1">
+        <label>Client ID (opcional, recomendado)<input name="clientId" autocomplete="off"></label>
+        <label>Client Secret (opcional)<input name="clientSecret" type="password" autocomplete="off"></label>
+        <p class="muted small full" style="margin:0">O acesso usa o escopo <code>drive.file</code>: o RDR Local só vê os arquivos que ele mesmo criar, nunca o seu Drive inteiro. Sem Client ID próprio o Google limita a velocidade; veja o guia na Ajuda.</p>
+      </div>
+      <div class="full form" data-k="s3" style="grid-column:1/-1">
+        <label>Provedor<select name="provider"><option value="Other">Outro (R2, B2, MinIO…)</option><option value="AWS">Amazon S3</option><option value="Cloudflare">Cloudflare R2</option><option value="Wasabi">Wasabi</option></select></label>
+        <label>Endpoint<input name="endpoint" placeholder="https://<conta>.r2.cloudflarestorage.com"></label>
+        <label>Região (opcional)<input name="region" placeholder="auto"></label>
+        <label>Access Key<input name="accessKeyId" autocomplete="off"></label>
+        <label>Secret Key<input name="secretAccessKey" type="password" autocomplete="off"></label>
+        <p class="muted small full" style="margin:0">Crie uma chave só com permissão no bucket de backup (menor privilégio).</p>
+      </div>
+      <p class="muted small full" data-k="dropbox" style="margin:0">O navegador abrirá para você autorizar o acesso.</p>
+      <p class="muted small full" data-k="local" style="margin:0">Use uma pasta de outro disco, de um NAS ou a pasta já sincronizada pelo OneDrive/Dropbox/Google Drive Desktop. Informe o caminho na etapa 3.</p>
+    </div>
+    <div class="row end"><button type="button" class="sec" id="clCancel">Cancelar</button><button type="submit" id="clSubmit">Conectar</button></div>
+  </form>
+</dialog>
+
+<dialog id="appDlg">
+  <form method="dialog" id="appForm">
+    <h3 id="appDlgTitle">Novo app</h3>
+    <div class="form">
+      <label id="lbAppTpl" class="full">Modelo
+        <select name="template"></select>
+      </label>
+      <label>Nome<input name="name" required placeholder="Minha API"></label>
+      <label><span id="lbAppDir">Pasta onde criar</span><input name="dir" placeholder="E:\www"></label>
+      <label>Domínio (opcional)<input name="domain" placeholder="minha-api.test"></label>
+      <label>Linguagem<select name="runtime"><option value="node">Node.js</option><option value="python">Python</option><option value="go">Go</option><option value="java">Java (JDK)</option><option value="custom">Comando próprio (outras linguagens)</option></select></label>
+      <label id="lbAppVer">Versão<select name="rtVersion"></select></label>
+      <label class="full">Comando de início<input name="cmd" required placeholder="npm run dev" style="font-family:monospace"><span class="muted small">Use <code>{PORT}</code> onde o app precisa da porta (também vai na variável de ambiente PORT). O app deve escutar em 127.0.0.1.</span></label>
+      <label>Porta do app (opcional)<input name="appPort" type="number" min="1024" max="65535" placeholder="automática (9300+)"></label>
+      <label>Aliases (opcional)<input name="aliases" placeholder="www.minha-api.test"></label>
+      <label class="full">Variáveis de ambiente (opcional, uma por linha)<textarea name="env" rows="3" spellcheck="false" placeholder="NODE_ENV=development&#10;DATABASE_URL=postgres://postgres@127.0.0.1:5433/app" style="font-family:monospace"></textarea></label>
+      <label class="row" style="gap:8px" id="lbAppDeps"><input type="checkbox" name="installDeps" checked> Instalar dependências ao criar (npm install / venv + pip)</label>
+      <label class="row" style="gap:8px"><input type="checkbox" name="autoStart" checked> Ligar junto com o Servidor Web</label>
+      <label class="row" style="gap:8px"><input type="checkbox" name="cors"> Liberar CORS (qualquer origem)</label>
+    </div>
+    <p class="muted small" id="appHint" style="margin:12px 0 0"></p>
+    <div class="row end"><button type="button" class="sec" id="appCancel">Cancelar</button><button type="submit" id="appSubmit">Criar</button></div>
+  </form>
+</dialog>
+
+<dialog id="siteDlg">
+  <form method="dialog" id="siteForm">
+    <h3 id="siteDlgTitle">Novo site</h3>
+    <div class="form">
+      <label id="lbMode" class="full">O que você quer criar?
+        <select name="mode">
+          <option value="laravel">Laravel novo (última versão)</option>
+          <option value="wordpress">WordPress novo (pt-BR)</option>
+          <option value="empty">Pasta PHP vazia</option>
+          <option value="existing">Usar uma pasta que já existe</option>
+          <option value="proxy">Proxy reverso (Node, Docker, Vite… em outra porta)</option>
+          <option value="redirect">Redirecionamento para outro endereço</option>
+        </select>
+      </label>
+      <label>Nome<input name="name" required placeholder="Minha loja"></label>
+      <label><span id="lbPath">Pasta raiz dos projetos</span><input name="path" placeholder="E:\www"></label>
+      <label id="lbTarget" class="full">Destino<input name="target" placeholder="3000  ou  http://127.0.0.1:3000"></label>
+      <label id="lbCors" class="row" style="gap:8px"><input type="checkbox" name="cors"> Liberar CORS (qualquer origem)</label>
+      <label>Domínio (opcional)<input name="domain" placeholder="minha-loja.test"></label>
+      <label>Versão do PHP<select name="php"></select></label>
+      <label id="lbKit">Starter kit (login e cadastro prontos)
+        <select name="kit">
+          <option value="">Nenhum (Laravel puro)</option>
+          <option value="kit-livewire">Kit oficial Livewire</option>
+          <option value="kit-react">Kit oficial React (Inertia)</option>
+          <option value="kit-vue">Kit oficial Vue (Inertia)</option>
+          <option value="breeze-blade">Breeze + Blade</option>
+          <option value="breeze-livewire">Breeze + Livewire</option>
+          <option value="breeze-react">Breeze + React</option>
+          <option value="breeze-vue">Breeze + Vue</option>
+        </select>
+      </label>
+      <label data-for="new">Banco de dados<select name="dbEngine"><option value="mariadb">MariaDB / MySQL</option><option value="postgres">PostgreSQL (só Laravel)</option><option value="">Nenhum</option></select></label>
+      <label data-for="existing">Aliases (opcional)<input name="aliases" placeholder="www.meu-site.test, *.meu-site.test"></label>
+      <label data-for="existing">Pasta pública (opcional)<input name="docroot" placeholder="auto (detecta public/)"></label>
+      <label id="lbEnv" class="full">Variáveis de ambiente (opcional, uma por linha)<textarea name="env" rows="3" spellcheck="false" placeholder="APP_ENV=local&#10;STRIPE_KEY=sk_test_..." style="font-family:monospace"></textarea>
+        <span class="muted small">Valem para o site (web), o terminal e os comandos do painel, e têm prioridade sobre o .env. Reinicie o servidor web para aplicar.</span></label>
+    </div>
+    <p class="muted small" id="modeHint" style="margin:12px 0 0"></p>
+    <div class="row end"><button type="button" class="sec" id="siteCancel">Cancelar</button><button type="submit" id="siteSubmit">Criar</button></div>
+  </form>
+</dialog>
+
+<script src="/app.js"></script>
+</body>
+</html>

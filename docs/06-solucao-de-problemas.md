@@ -1,0 +1,81 @@
+# Solução de problemas
+
+Comece sempre pelo menu **Diagnóstico**: ele confere extensões do PHP, portas, hosts, CA, bancos e `.env`, com botão de correção.
+
+## Sites e HTTPS
+
+| Sintoma | Causa provável | O que fazer |
+|---|---|---|
+| Cadeado não fica verde | CA local não confiável no navegador | Certificado SSL → *Confiar na CA local* (como Administrador) e reabra o navegador |
+| Domínio não abre | Servidor Web parado ou hosts sem a linha | Iniciar o Servidor Web; Diagnóstico → corrigir hosts. `.localhost` funciona sem hosts |
+| "Sem permissão para editar o hosts" | Painel aberto sem Administrador | Abra pelo `start.bat`. Se persistir, copie as linhas mostradas para o hosts |
+| Porta 80/443 em uso | ServBay/XAMPP/IIS | Pare o outro servidor ou troque as portas em Configurações |
+| Curinga `*.app.test` não resolve | DNS local desligado | Configurações → DNS local |
+| Proxy reverso dá 502 | Nada ouvindo na porta de destino | Suba o app; no Docker do Windows use `host.docker.internal:porta` |
+
+## Apps (Node.js, Python, Go, Java)
+
+| Sintoma | O que fazer |
+|---|---|
+| 502 no domínio do app | O app precisa escutar em `127.0.0.1` na porta `PORT`. Veja o log do app e o Diagnóstico |
+| "Node.js/Python não está instalado" | Componentes e PHP → Linguagens → instalar |
+| "A porta N já está em uso" | Feche o programa que usa a porta ou edite o app para outra |
+| "App caiu" | Caiu 5 vezes em 1 minuto: corrija o erro (log) e inicie de novo |
+| Go/Java "comando não encontrado" | Instale com `winget` (veja o *Guia de linguagens*) e reabra o RDR Local |
+
+## PHP e Laravel
+
+| Sintoma | O que fazer |
+|---|---|
+| `could not find driver` | Reinicie o RDR Local (corrige o php.ini) e confira `php -m \| findstr /i pgsql` |
+| `relation sessions does not exist` / banco sem tabelas | Processos do site → *Migrate* (ou `php artisan migrate --force` no terminal) |
+| Mudei variável de ambiente e nada mudou | Reinicie o Servidor Web |
+| Editei o php.ini à mão e deu erro | Componentes e PHP → Configurar → restaurar `php.ini.bak` |
+| Extensão voltou a ligar/desligar sozinha | Use a aba Extensões do editor; as desligadas por você são respeitadas |
+
+## Bancos
+
+| Sintoma | O que fazer |
+|---|---|
+| PostgreSQL não inicia como Administrador | O painel já usa token restrito (`pg_ctl`); veja `logs/postgres.log` |
+| MariaDB não conecta no `.env` | Porta padrão aqui é **3307**, PostgreSQL **5433**, Redis **6380** |
+| Restauração apagou dados | Antes de restaurar/excluir é salvo um backup em `data\backups\<motor>\` |
+| Backup agendado não rodou | O painel precisa estar aberto e o banco ligado; ele recupera ao abrir |
+
+## Painel, inicialização e túnel
+
+| Sintoma | O que fazer |
+|---|---|
+| `start.bat` com o painel já aberto | Ele só abre o painel existente (porta 7070 em uso) |
+| Iniciar com o Windows não ativa | Abra o RDR Local como Administrador uma vez e marque a opção |
+| Túnel sem link | Instale o Cloudflared em Componentes; veja o log do processo |
+| Painel responde 403 | Acesse por `127.0.0.1:7070` ou `localhost:7070` (outros nomes são bloqueados de propósito) |
+| Download de componente falha | Verifique internet/antivírus/proxy e tente de novo; o log da tarefa mostra a URL |
+
+## Coletar informações para suporte
+
+1. Diagnóstico → copie o resultado.
+2. Aba Logs → serviço com problema.
+3. Informe versão do Windows, versão do PHP do site e o que mudou antes do erro.
+
+## Abri um domínio e apareceu o site de outro servidor (ex.: aion.local)
+
+**Caso típico: ServBay.** O `nginx` do ServBay (`C:\ServBay\packages\nginx\nginx.exe`) ocupa as portas 80/443 e responde pelo site padrão dele (por exemplo `aion.local`). Soluções: (a) no ServBay, pare o *Nginx* (ou o ServBay inteiro) enquanto usa o RDR Local; ou (b) em *Configurações* do RDR Local mude as portas web para 8080/8443 e acesse `https://seu-site.local:8443`. Use um só servidor por vez nas portas 80/443.
+
+Dois programas disputam as portas 80/443. Vale para ServBay, XAMPP, IIS/Apache ou outra cópia do RDR Local (por exemplo a pasta do `start.bat` e a instalada).
+
+1. Em *Diagnóstico*, veja o item **Quem atende as portas 80/443/53**: ele mostra o programa e o caminho.
+2. No PowerShell (Administrador), confira você mesmo:
+   ```powershell
+   Get-NetTCPConnection -LocalPort 80,443,53 -State Listen | ForEach-Object { $p = Get-Process -Id $_.OwningProcess; "{0} -> {1} {2}" -f $_.LocalPort, $p.ProcessName, $p.Path }
+   ```
+3. Feche o outro servidor (ou desligue o início automático dele) e use *Reiniciar o painel* na bandeja. Mantenha **uma** cópia do RDR Local ligada por vez: cada uma tem sua própria lista de sites.
+4. Limpe o cache do navegador para o domínio (Ctrl+Shift+Del) ou teste em janela anônima.
+
+## O backup na nuvem não envia
+
+Veja a tabela de problemas comuns no guia *Backup na nuvem*. Para ver o que aconteceu, clique em **Enviar agora** e leia o log da tarefa (canto inferior direito). O último resultado também aparece na página, e, com os avisos ligados, chega por Telegram/webhook.
+
+## Os medidores de CPU/Memória/Disco aparecem vazios
+
+Causa mais comum: **extensão de bloqueio** (uBlock, AdGuard, Privacy Badger…) barrando a chamada de métricas. A partir da 1.2.1 ela se chama `/api/host-status` e a mensagem mostra o motivo. Se ainda falhar, desative a extensão para `127.0.0.1` ou teste em janela anônima. Também ajuda **Ctrl+F5** (interface antiga em cache). A partir da 1.2 os medidores são desenhados ao abrir o Painel; se ainda ficarem vazios, veja o log do painel em `C:\ProgramData\RDRLocal\logs\panel.log`.

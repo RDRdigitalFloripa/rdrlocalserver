@@ -1,0 +1,10 @@
+{
+  "name": "rdr-local",
+  "version": "1.8.2",
+  "description": "RDR Local Server - ambiente local de hospedagem com HTTPS (Windows)",
+  "private": true,
+  "license": "Apache-2.0",
+  "author": "RDR Digital",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js", "build:installer": "bash installer/build.sh" }
+}
