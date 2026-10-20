@@ -1,7 +1,7 @@
 RDR Local - ambiente local de hospedagem com HTTPS (estilo ServBay / Laragon)
 
 INSTALADOR (recomendado)
-Execute RDR-Local-Setup-1.8.2.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
+Execute RDR-Local-Setup-1.8.3.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
 C:\ProgramData\RDRLocal. Roda em segundo plano com icone perto do relogio (Abrir painel, Reiniciar, Sair); fechar navegador ou
 janelas nao derruba nada, e se o painel cair o icone o religa. Opcao de iniciar com o Windows. Atualizar = rodar o novo instalador por cima.
 Gerar o instalador: bash installer/build.sh (precisa de nsis e npm). Detalhes na Ajuda > Guia de instalacao.
@@ -22,6 +22,9 @@ NOVO SITE
 - Banco: MariaDB/MySQL ou PostgreSQL (PostgreSQL e instalado/iniciado automaticamente se preciso).
 
 O QUE TEM
+- Painel tambem em https://rdr-local-server.local (com o servidor Web ligado); 127.0.0.1:7070 sempre funciona
+- GitHub (clonar, estado do Git), Importar de ServBay/Laragon/XAMPP (sites e bancos)
+- Publicar: servidores SSH, receitas Docker Swarm (GHCR + build do GitHub Actions) e sites antigos por FTP/FTPS/SFTP (Ajuda > Publicar)
 - Sites .test/.local/.host/.localhost com HTTPS, aliases, PHP por site (varias versoes), pasta publica automatica
 - Laravel/WordPress detectados; bloqueio de /.env, /.git e /storage/logs
 - MariaDB (3307), PostgreSQL (5433), Redis (6380), Mailpit (SMTP 1026, caixa em https://mail.test)

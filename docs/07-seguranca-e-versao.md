@@ -11,11 +11,15 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 - Caddy bloqueia `/.env`, `/.git` e `/storage/logs` em todos os sites.
 - MCP não tem ferramentas destrutivas; terminal só com liberação explícita.
 - Restaurar e excluir banco sempre salvam backup antes.
+- Publicar: só roda comandos de receitas que você cadastrou; chaves SSH e senhas FTP ficam cifradas (DPAPI); a impressão digital do servidor é confirmada por você e depois exigida; `.env` nunca é enviado por FTP/SFTP; nada é apagado no servidor sem confirmação.
+- O painel só aceita o `Host` exato `rdr-local-server.<terminação>` além de 127.0.0.1/localhost.
 
 **Não protegido (de propósito)**
 - Painel sem login: qualquer programa rodando como você pode usá-lo.
 - Bancos sem senha, acessíveis em `127.0.0.1`.
 - Variáveis de ambiente por site ficam em `config\config.json`, texto puro.
+- Quem controla o painel (qualquer programa rodando como você) pode publicar receitas já cadastradas.
+- FTP simples não é criptografado.
 - O túnel público expõe o site a quem tiver o link.
 
 ## Regras práticas
@@ -28,7 +32,7 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 
 ## Versão
 
-**RDR Local Server v1.8.2** — desenvolvido por RDR Digital.
+**RDR Local Server v1.8.3** — desenvolvido por RDR Digital.
 
 Novidades da 1.3: **Backup na nuvem** (Google Drive, Dropbox, S3/R2/B2, pasta ou disco) com rclone, criptografia opcional, teste de restauração, retenção protegida e avisos de falha por Telegram/webhook. Veja o guia *Backup na nuvem*.
 
@@ -37,6 +41,10 @@ Novidades da 1.4: **GitHub** — login pelo navegador (Device Flow) ou token pes
 Novidades da 1.5: **Importar de outro ambiente** (ServBay, Laragon, XAMPP ou qualquer pasta/arquivo de configuração nginx/Apache), só leitura, com prévia e confirmação. Veja o guia *Importar sites*.
 
 Novidades da 1.6: **Importar bancos de outro servidor** (MySQL/MariaDB ligado neste PC): dump, ajuste de collations do MySQL 8, restauração e conferência de tabelas e linhas. Veja o guia *Importar sites* (seção Bancos).
+
+Novidades da 1.7: **Publicar** — servidores SSH, chaves, impressão digital, receitas Docker Swarm (imagens do GHCR) e verificação do build no GitHub Actions. Veja o guia *Publicar*.
+
+Novidades da 1.8: publicação de sites antigos por **FTP, FTPS e SFTP** com prévia e envio incremental. 1.8.1: endereço `https://rdr-local-server.local` para o painel. 1.8.3: versão correta na imagem do instalador.
 
 Novidades da 1.2: runtimes gerenciados de **Go** e **Java (JDK Temurin)** com SHA-256, modelos TypeScript (Express), Vite+React+TS, Next.js, Go e Spring Boot, versão dinâmica no painel, medidores de CPU/memória/disco desenhados na hora e diagnóstico de *quem atende as portas 80/443/53* (detecta ServBay/XAMPP ou outra cópia do RDR Local).
 

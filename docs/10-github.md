@@ -55,3 +55,6 @@ Apagar um repositório lá **não** remove o site daqui. A cada 10 minutos o RDR
 | Org com SSO | Token precisa de autorização da organização | Em github.com/settings/tokens → *Configure SSO* |
 | Clone falha com 403/404 | Sem permissão ou nome errado | Confira dono/nome e as permissões |
 | "pasta já existe" | Destino ocupado | Escolha outro nome ou pasta |
+
+## Build do GitHub Actions (usado em Publicar)
+Para a página *Publicar* conferir o último build, o token fine-grained precisa também de **Actions: Read** (além de Contents: Read e Metadata: Read). No Device Flow com `repo`/`public_repo` já vale. Veja o guia *Publicar*.

@@ -1,6 +1,6 @@
 # SDD — Software Design Document
 
-**Produto:** RDR Local Server v1.8.2
+**Produto:** RDR Local Server v1.8.3
 
 ## 1. Visão geral da arquitetura
 
@@ -37,6 +37,10 @@ Um único processo Node (`server.js`, sem dependências npm) serve a interface e
 | `phpini.js` | Editor de php.ini com validação (probe do PHP) e backup |
 | `dns.js` | Responder DNS UDP e regra NRPT do Windows |
 | `autostart.js` | Tarefa agendada do Windows (`Register-ScheduledTask`) |
+| `github.js` | Device Flow/token (DPAPI), repositórios, clonar, estado do Git (`--porcelain=v2`), `pull --ff-only`, repositório removido, último build do Actions |
+| `importer.js` / `dbimport.js` | Leitura de vhosts nginx/Apache (ServBay/Laragon/XAMPP) e importação de bancos de outro MySQL/MariaDB com ajuste de collations |
+| `deploy.js` | Servidores SSH, chaves cifradas, known_hosts próprio, receitas (modelo Swarm), pré-verificação e publicação |
+| `ftp.js` | Publicação FTP/FTPS (curl.exe) e SFTP (sftp.exe): manifesto SHA-1, prévia, exclusões, `.env` nunca enviado |
 | `updates.js` | Verificação e aplicação de atualizações |
 | `sysinfo.js` | Métricas de CPU, memória e disco |
 
@@ -68,6 +72,8 @@ Persistência em `config/config.json` (texto puro). Campos principais:
   "ports": { "http": 80, "https": 443, "mariadb": 3307, "postgres": 5433,
              "redis": 6380, "mailpitSmtp": 1026, "mailpitUi": 8026, "meilisearch": 7710 },
   "autoStartServices": false, "dnsMode": false,
+  "github": { "clientId": "", "privateRepos": false },
+  "servers": [], "sshKeys": [], "recipes": [], "ftpTargets": [],
   "backup": { "enabled": false, "freq": "daily", "time": "03:00", "keep": 7, "last": 0, "lastMsg": "" },
   "sites": [ { "domain": "app.test", "type": "php", "path": "...", "php": "8.4",
                "aliases": [], "env": {}, "cors": false, "target": "" } ]
@@ -94,6 +100,12 @@ Persistência em `config/config.json` (texto puro). Campos principais:
 
 **Backup na nuvem:** `runAll()` (backup agendado) → `cloud.sync()` → `rclone copy` dos dumps (`db/`), da configuração sem segredos (`config/`) e, se ligado, de `.env` + `storage/app` dos projetos (`projects/<domínio>/`), por filtros explícitos. Com criptografia, o destino efetivo é o remote `crypt` sobre `<pasta>/encrypted`; o sal vem da própria senha (scrypt), então a mesma senha reabre os backups em outro PC. A retenção remota só apaga se houver backup recente (`lsjson --max-age`). O resultado vai para `cfg.cloud.last*` e, em falha, para `notify.event`.
 
+**Publicar (receita):** `precheck` (identidade do servidor, commits não enviados, build do Actions) → prévia dos comandos → `publish`: cada passo roda por `ssh` (chave temporária 0600, `StrictHostKeyChecking=yes`, known_hosts próprio), para no primeiro erro, grava `last` e avisa por Telegram/webhook.
+
+**Publicar (FTP/SFTP):** varredura local (exclusões + `.env` nunca) → hash SHA-1 → comparação com o manifesto em `data/ftp/<id>.json` → prévia (novos/alterados/removidos) → envio em lotes de 40 → manifesto gravado a cada lote → exclusão remota só com confirmação. A senha FTP vai ao curl por stdin (`-K -`).
+
+**Painel por nome:** o Caddy publica `rdr-local-server.<tld>` com `reverse_proxy` para o painel (somente `remote_ip` local).
+
 ## 5. API HTTP
 
 Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
@@ -101,13 +113,14 @@ Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
 ## 6. Segurança
 
 1. Escuta apenas em 127.0.0.1.
-2. `ALLOWED_HOSTS` (127.0.0.1:porta e localhost:porta); outro `Host` → 403 (anti DNS-rebinding).
+2. `Host` aceito: `127.0.0.1:porta`, `localhost:porta` e exatamente `rdr-local-server.<tld>` (com a porta HTTPS se não for 443); outro → 403 (anti DNS-rebinding).
 3. POST sem `X-RDR: 1` → 403 (anti-CSRF; um site malicioso não consegue enviar o cabeçalho customizado sem preflight).
 4. Corpo limitado a 100 KB; nomes de banco restritos a letras/números/`_`.
 5. Arquivos estáticos protegidos contra *path traversal*; a Ajuda lê apenas arquivos `.md` da pasta `docs/`.
 6. Caddy bloqueia `/.env`, `/.git`, `/storage/logs`; Adminer/phpMyAdmin só para 127.0.0.1.
 7. MCP sem ferramentas destrutivas; terminal só com `RDR_MCP_ALLOW_SHELL=1`.
-8. Limitações conhecidas: sem autenticação no painel (confia na máquina), segredos de env em texto puro, bancos sem senha (apenas localhost).
+8. Publicar: só executa comandos de receitas; chaves SSH e senhas FTP cifradas com DPAPI; impressão digital do servidor confirmada pelo usuário; `.env` nunca enviado por FTP; exclusão remota só com confirmação.
+9. Limitações conhecidas: sem autenticação no painel (confia na máquina), segredos de env em texto puro, bancos sem senha (apenas localhost).
 
 ## 7. Decisões de projeto
 
@@ -119,12 +132,15 @@ Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
 | Portas alternativas de bancos | Conviver com ServBay/XAMPP |
 | MinIO fora | Edição comunitária só tem código-fonte |
 | Sem atualização automática de bancos | Proteger dados do usuário |
+| SSH/SFTP pelo cliente OpenSSH do Windows | Reaproveita known_hosts estrito e chaves; sem dependências npm |
+| Sem terminal livre em Publicar | Reduz o dano se o painel for abusado: só roda o que está cadastrado |
 | Agendador interno (não tarefa do SO) | Simplicidade; roda quando o painel está aberto |
 
 ## 8. Testes e validação
 
 Validado em Linux (sandbox): Caddyfile com binário real do Caddy, php.ini com PHP real, DNS, túnel (cloudflared simulado), backups, CLI, MCP, exportar/importar e fluxo de atualizações (stubs), interface via Playwright.
-**Validar no Windows a cada versão:** NRPT/DNS, tarefa agendada, downloads reais, variáveis de ambiente no `php-cgi`.
+Publicar foi validado em Linux com sshd real, mock da API do Actions e servidor FTP/SFTP reais.
+**Validar no Windows a cada versão:** NRPT/DNS, tarefa agendada, downloads reais, variáveis de ambiente no `php-cgi`, DPAPI, `icacls`, OpenSSH, `curl.exe`, FTPS com TLS real.
 
 ## 9. Extensão
 

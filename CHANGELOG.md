@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.3
+- Documentação atualizada (README, manual, instalação, PRD, SDD, API, solução de problemas, segurança, GitHub e Publicar).
+
 ## 1.8.2
 - Instalador: a imagem lateral mostra a versão que está sendo instalada (antes aparecia sempre "v1.0"); gerada no build a partir de `installer/side-base.bmp` (precisa de Python + Pillow no build).
 

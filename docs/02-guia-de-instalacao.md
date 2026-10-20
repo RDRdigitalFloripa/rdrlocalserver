@@ -2,7 +2,7 @@
 
 ## Instalação com o instalador (recomendado)
 
-1. Execute `RDR-Local-Setup-1.8.2.exe` (aceite o pedido de Administrador). O Node.js já vai embutido: não precisa instalar nada antes.
+1. Execute `RDR-Local-Setup-1.8.3.exe` (aceite o pedido de Administrador). O Node.js já vai embutido: não precisa instalar nada antes.
 2. Na tela de componentes, deixe marcado **Iniciar com o Windows** se quiser o RDR Local sempre ligado em segundo plano.
 3. Ao final, marque *Abrir o RDR Local agora*. O painel abre em http://127.0.0.1:7070 e aparece um **ícone perto do relógio**.
 
@@ -24,7 +24,7 @@ Os dados ficam fora da pasta do programa: atualizar ou reinstalar **não apaga**
 
 **Vindo do `start.bat` (pasta antiga)?** Em *Configurações → Exportar configuração* na instalação antiga, e *Importar* na nova. Para os bancos, faça backup na aba Bancos e restaure na nova (os componentes são baixados de novo com *Instalar tudo*).
 
-**Instalação silenciosa (equipes):** `RDR-Local-Setup-1.8.2.exe /S`. Para outra pasta: `/D=C:\Ferramentas\RDR Local` (sempre o último parâmetro, sem aspas).
+**Instalação silenciosa (equipes):** `RDR-Local-Setup-1.8.3.exe /S`. Para outra pasta: `/D=C:\Ferramentas\RDR Local` (sempre o último parâmetro, sem aspas).
 
 **Gerar o instalador (desenvolvedores):** em Linux/macOS/WSL com `nsis` e `npm`, rode `bash installer/build.sh`. O resultado fica em `installer/dist/`, junto com o `.sha256`.
 
@@ -44,6 +44,15 @@ Os dados ficam fora da pasta do programa: atualizar ou reinstalar **não apaga**
 3. Se o Node.js for instalado agora, **feche a janela e abra o `start.bat` de novo**.
 4. Abra http://127.0.0.1:7070 e clique em **Instalar tudo**, depois **Iniciar tudo**.
 
+## Gerar o instalador
+
+`bash installer/build.sh` (Linux/macOS/WSL). Requisitos: `makensis` (pacote `nsis`), `npm`, `tar`, **`python3` com Pillow** (`pip install pillow`; escreve a versão na imagem lateral do instalador a partir de `installer/side-base.bmp`). A saída vai para `installer/dist/RDR-Local-Setup-<versão>.exe` com o `.sha256`. Os instaladores não são versionados no Git: anexe-os às *Releases*.
+
+## Requisitos opcionais do Windows para Publicar
+
+- **Cliente OpenSSH** (Configurações → Aplicativos → Recursos opcionais): necessário para servidores SSH e SFTP (`ssh`, `ssh-keygen`, `ssh-keyscan`, `sftp`).
+- **curl.exe**: já vem no Windows 10 (1803+) e 11; usado para FTP/FTPS.
+
 ## Estrutura de pastas (no modo manual ficam ao lado do `server.js`; instalado, em `C:\ProgramData\RDRLocal`)
 
 | Pasta | Conteúdo |
@@ -57,6 +66,10 @@ Os dados ficam fora da pasta do programa: atualizar ou reinstalar **não apaga**
 | `lib/` | Módulos do servidor |
 
 Fazer backup de `config/` e `data/backups/` preserva sites e bancos exportados.
+
+## Endereço do painel
+
+`http://127.0.0.1:7070` sempre funciona. Com o servidor Web ligado também há `https://rdr-local-server.<terminação>` (o hosts/DNS local e a CA local fazem o resto).
 
 ## Variáveis de ambiente do RDR Local
 

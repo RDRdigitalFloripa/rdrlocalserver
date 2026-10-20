@@ -46,3 +46,9 @@ Seção "Sites antigos" da mesma página. Cada **destino** liga um site (pasta l
 - **Prévia** com novos, alterados e removidos. Arquivos removidos aqui **continuam no servidor** a menos que você marque "Apagar no servidor" e confirme.
 - Se algum arquivo falhar, o que subiu fica registrado; rode de novo para o resto.
 - Nomes de arquivo com aspas, barra invertida ou caracteres de controle são ignorados (aparecem na prévia).
+
+## Referência rápida
+- API: grupos *Publicar (SSH)* e *Publicar (FTP/SFTP)* em *Referência: CLI, API e MCP*.
+- Problemas comuns: *Solução de problemas* (seções Publicar e FTP).
+- Segurança: *Segurança, limites e versão*.
+- Portainer: se o serviço nasceu de uma stack do Portainer, `docker service update --image` não altera o arquivo da stack; com tag fixa, um *Update the stack* volta à imagem antiga. O `--with-registry-auth` usa o `docker login` do usuário SSH.

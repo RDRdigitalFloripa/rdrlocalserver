@@ -79,3 +79,27 @@ Veja a tabela de problemas comuns no guia *Backup na nuvem*. Para ver o que acon
 ## Os medidores de CPU/Memória/Disco aparecem vazios
 
 Causa mais comum: **extensão de bloqueio** (uBlock, AdGuard, Privacy Badger…) barrando a chamada de métricas. A partir da 1.2.1 ela se chama `/api/host-status` e a mensagem mostra o motivo. Se ainda falhar, desative a extensão para `127.0.0.1` ou teste em janela anônima. Também ajuda **Ctrl+F5** (interface antiga em cache). A partir da 1.2 os medidores são desenhados ao abrir o Painel; se ainda ficarem vazios, veja o log do painel em `C:\ProgramData\RDRLocal\logs\panel.log`.
+
+## O endereço rdr-local-server.local não abre
+Precisa do **servidor Web ligado** e do nome resolvendo (hosts ou DNS local). Use `http://127.0.0.1:7070` enquanto isso. Se aparecer aviso de certificado, faça *Certificado SSL → Confiar na CA local* e reabra o navegador.
+
+## Publicar: "Permission denied" no teste do servidor
+A chave pública ainda não está no servidor. Em *Publicar → Chaves SSH* use "Copiar pública" e coloque a linha em `~/.ssh/authorized_keys` do usuário do servidor (permissões: pasta `.ssh` 700, arquivo 600).
+
+## Publicar: "impressão digital mudou" ou conexão recusada
+Só aceite a nova impressão digital se você reinstalou o servidor. Confira com `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` no servidor.
+
+## Publicar: "O Cliente OpenSSH não está instalado"
+Configurações do Windows → Aplicativos → Recursos opcionais → Adicionar → *Cliente OpenSSH*.
+
+## Publicar: o build aparece como "bloqueia"
+O RDR espera o build do GitHub Actions terminar com sucesso. Se a consulta falhar, o token do GitHub precisa da permissão **Actions: Read**. "Publicar mesmo assim" existe, mas exige confirmação.
+
+## FTP: "Usuário ou senha recusados" / certificado FTPS
+Confira usuário e senha e o protocolo/porta (FTPS costuma ser 21 explícito; 990 implícito). Se o provedor usa certificado de outro nome, a opção "Aceitar certificado que não confere" resolve, ao custo de segurança.
+
+## FTP: enviou tudo de novo ou quero registrar o que já está no servidor
+O RDR guarda o que enviou em `data\ftp\<destino>.json`. Se a pasta do servidor já está igual à local, use **"Já está igual no servidor"** na primeira prévia para não reenviar nada.
+
+## O Importar não achou meus sites
+Aponte a pasta ou o arquivo de configuração (nginx/Apache) manualmente. Veja o guia *Importar sites* para as pastas e formatos aceitos.

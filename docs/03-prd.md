@@ -1,6 +1,6 @@
 # PRD — Product Requirements Document
 
-**Produto:** RDR Local Server · **Versão:** 1.8.2 · **Responsável:** RDR Digital
+**Produto:** RDR Local Server · **Versão:** 1.8.3 · **Responsável:** RDR Digital
 
 ## 1. Contexto e problema
 
@@ -14,8 +14,8 @@ A RDR Digital mantém vários sistemas (Laravel, WordPress, SaaS multi-tenant, i
 4. Ser seguro por padrão (somente máquina local) e fácil de diagnosticar.
 5. Ser operável por humanos (painel, CLI) e por agentes de IA (MCP).
 
-### Fora de escopo (v1.2)
-Gerenciar automaticamente Go, Java, Ruby e .NET (usam comando próprio), produção/hospedagem real, Linux/macOS (a lógica de rede e serviço é Windows), MinIO, Memcached, Typesense, Xdebug, múltiplas versões de banco/Node, instalador `.exe`.
+### Fora de escopo (v1.8)
+Hospedagem real (o RDR Local não serve produção; apenas **publica** para ela via SSH/Swarm e FTP/SFTP), terminal livre no servidor remoto, Ruby e .NET gerenciados, Linux/macOS (a lógica de rede e serviço é Windows), MinIO, Memcached, Typesense, Xdebug, múltiplas versões de banco.
 
 ## 3. Personas
 
@@ -91,4 +91,4 @@ Gerenciar automaticamente Go, Java, Ruby e .NET (usam comando próprio), produç
 
 ## 8. Roadmap sugerido
 
-Runtimes gerenciados para Go e Java (JDK), Docker Compose por projeto, perfis de projeto, múltiplas versões de banco, Xdebug, MinIO/Memcached sob demanda, assinatura digital do instalador.
+Túnel SSH para o banco de produção, receita "Webhook do Portainer", chave SSH com senha (passphrase), Runtimes gerenciados para Go e Java (JDK), Docker Compose por projeto, perfis de projeto, múltiplas versões de banco, Xdebug, MinIO/Memcached sob demanda, assinatura digital do instalador.

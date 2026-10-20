@@ -19,7 +19,7 @@ Serviços: `web`, `mariadb`, `postgres`, `redis`, `mailpit`, `meilisearch`, `dns
 
 ## API HTTP (uso interno do painel)
 
-Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 1`. O `Host` deve ser `127.0.0.1:7070` ou `localhost:7070`. Erros voltam como `{ "error": "mensagem" }` (HTTP 400).
+Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 1`. O `Host` deve ser `127.0.0.1:7070`, `localhost:7070` ou `rdr-local-server.<terminação>`. Erros voltam como `{ "error": "mensagem" }` (HTTP 400).
 
 > A API não é pública nem versionada: pode mudar entre versões. Para automação, prefira CLI ou MCP.
 
@@ -36,6 +36,8 @@ Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 
 | GitHub e Git | `GET /api/github` (nunca devolve o token); `POST /api/github/config`, `/device-start`, `/device-poll`, `/token`, `/disconnect`, `/clone`; `GET /api/github/repos?q=`; `GET /api/git/status`; `POST /api/git/fetch`, `/api/git/pull` |
 | Importação | `GET /api/import/sources`; `POST /api/import/scan` (`kind`, `path`); `POST /api/import/run` (`kind`, `path`, `keys`) |
 | Importar bancos | `GET /api/dbimport/ports`; `POST /api/dbimport/probe` (`port`, `user`, `password`); `POST /api/dbimport/run` (`port`, `user`, `password`, `items[{name,target,overwrite}]`). A senha nunca é gravada nem registrada em log |
+| Publicar (SSH) | `GET /api/deploy` (nunca devolve chaves privadas); `POST /api/deploy/key/generate`, `/key/import`, `/key/remove`; `/server/save`, `/server/remove`, `/server/probe`, `/server/trust` (impressão digital), `/server/test`; `/recipe/save`, `/recipe/remove`, `/recipe/precheck`, `/recipe/publish` (`id`, `force`) |
+| Publicar (FTP/SFTP) | `GET /api/ftp` (nunca devolve senhas); `POST /api/ftp/save`, `/remove`, `/test`, `/plan` (prévia), `/baseline`, `/publish` (`id`, `confirmFirst`, `deleteRemoved`) |
 | Backup agendado | `POST /api/backup/schedule`, `/api/backup/run-all` |
 | PHP | `GET /api/php/available`, `/api/php/ini`; `POST /api/php/ext`, `/api/php/settings`, `/api/php/ini-raw`, `/api/php/ini-restore` |
 | Diagnóstico | `GET /api/doctor`; `POST /api/doctor/fix` |

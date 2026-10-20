@@ -1,10 +1,10 @@
 # Manual do usuário
 
-> RDR Local Server v1.8.2 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.8.3 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
-O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servidor web com HTTPS (Caddy), várias versões de PHP, bancos (MariaDB, PostgreSQL), Redis, e-mail de teste (Mailpit) e busca (Meilisearch). Tudo é controlado por um painel em **http://127.0.0.1:7070**.
+O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servidor web com HTTPS (Caddy), várias versões de PHP, bancos (MariaDB, PostgreSQL), Redis, e-mail de teste (Mailpit) e busca (Meilisearch). Tudo é controlado por um painel em **http://127.0.0.1:7070** (ou **https://rdr-local-server.local**, quando o servidor Web estiver ligado).
 
 ## 2. Primeiro uso (5 passos)
 
@@ -27,6 +27,8 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 | Componentes e PHP | Instalar/atualizar componentes, versões de PHP, Node.js e Python, editor do php.ini |
 | Logs | Logs dos serviços e `laravel.log` do projeto |
 | Configurações | Domínios, portas, DNS local, inicialização, backup agendado, MCP, exportar/importar |
+| GitHub | Conectar a conta, clonar repositórios, estado do Git (guia *GitHub*) |
+| Publicar | Servidores SSH, receitas (Docker Swarm), sites antigos por FTP/SFTP (guia *Publicar*) |
 | Ajuda | Esta documentação |
 
 ## 4. Sites
@@ -102,6 +104,15 @@ Funciona em qualquer terminal do RDR Local, ou com `bin\shims` no PATH. Precisa 
 - Ative o **backup agendado** e teste uma restauração de vez em quando.
 - Reinicie o Servidor Web depois de mexer em variáveis de ambiente ou no php.ini à mão.
 
+## 11. GitHub, importação e publicação
 
-## Endereço do painel
-Com o servidor Web ligado, o painel também abre em `https://rdr-local-server.local` (a terminação segue a de Configurações). O nome é reservado, não pode ser usado por um site. Se o Web estiver parado, use `http://127.0.0.1:7070`.
+- **GitHub**: conectar a conta, clonar para um site e atualizar com segurança. Guia *GitHub*.
+- **Importar**: em *Painel → Sites → Importar* (sites de ServBay/Laragon/XAMPP) e em *Bancos de dados → Importar de outro servidor*. Guia *Importar sites*.
+- **Publicar**: leve o código para produção sem terminal livre. Guia *Publicar*:
+  - **Servidores e chaves SSH**, com a impressão digital do servidor confirmada por você.
+  - **Receitas**: comandos cadastrados por você; o modelo Swarm atualiza serviços com a imagem do GHCR depois de conferir o build do GitHub Actions.
+  - **Sites antigos (FTP/FTPS/SFTP)**: envia só o que mudou, com prévia; `.env` nunca é enviado e nada é apagado no servidor sem confirmação.
+
+## 12. Endereço do painel
+
+Com o servidor Web ligado, o painel também abre em `https://rdr-local-server.<terminação>` (ex.: `rdr-local-server.local`; a terminação segue *Configurações*). O nome é reservado: nenhum site pode usá-lo. Se o servidor Web estiver parado, use `http://127.0.0.1:7070`, que sempre funciona.

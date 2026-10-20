@@ -1,8 +1,8 @@
 # RDR Local Server
 
-Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Laravel, apps Node, Python, Go e Java, bancos, e-mail de teste, backups (inclusive na nuvem) e integração com GitHub, tudo em um painel em `http://127.0.0.1:7070`. Zero dependências npm: o próprio Node.js vai embutido no instalador.
+Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Laravel, apps Node, Python, Go e Java, bancos, e-mail de teste, backups (inclusive na nuvem) e integração com GitHub, importação de outros ambientes e publicação em servidores, tudo em um painel em `http://127.0.0.1:7070` (ou `https://rdr-local-server.local`, com o servidor Web ligado). Zero dependências npm: o próprio Node.js vai embutido no instalador.
 
-> Status: v1.4. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
+> Status: v1.8. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
 
 ## O que faz
 
@@ -11,6 +11,8 @@ Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Larav
 - **Projetos**: templates (Laravel, Express/TS, Vite, Next.js, Go, Spring), terminal por site, filas/agendador.
 - **Backup**: bancos agendados, envio para Google Drive/Dropbox/S3/pasta com rclone, criptografia opcional e teste de restauração.
 - **GitHub**: login por Device Flow ou token fine-grained, clonar para um site, estado do Git e atualização segura (`pull --ff-only`).
+- **Importar**: sites e bancos de ServBay, Laragon, XAMPP ou de outro MySQL/MariaDB local, com prévia e conferência.
+- **Publicar**: servidores SSH (chave + impressão digital), receitas para Docker Swarm com imagens do GHCR, verificação do build no GitHub Actions e publicação de sites antigos por FTP/FTPS/SFTP com prévia e `.env` nunca enviado.
 - **Diagnóstico**: portas em conflito (ex.: ServBay), extensões do PHP, hosts, certificado.
 
 ## Instalação
@@ -23,13 +25,13 @@ Guia completo: [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
 
 ## Documentação
 
-[docs/](docs/): manual, instalação, PRD, SDD, API/CLI/MCP, solução de problemas, segurança, linguagens, backup na nuvem e GitHub.
+[docs/](docs/): manual, instalação, PRD, SDD, API/CLI/MCP, solução de problemas, segurança, linguagens, backup na nuvem, GitHub, importação e publicação.
 
 ## Desenvolvimento
 
 ```bash
 node server.js                 # painel em http://127.0.0.1:7070 (modo desenvolvimento)
-bash installer/build.sh        # gera o instalador (precisa de nsis e npm); saída em installer/dist/
+bash installer/build.sh        # gera o instalador (precisa de nsis, npm e python3 com Pillow); saída em installer/dist/
 ```
 
 Variáveis úteis: `RDR_PORT`, `RDR_HOME`, `RDR_HOSTS`. Detalhes em [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).

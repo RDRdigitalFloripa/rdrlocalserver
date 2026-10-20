@@ -1,6 +1,6 @@
 {
   "name": "rdr-local",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "RDR Local Server - ambiente local de hospedagem com HTTPS (Windows)",
   "private": true,
   "license": "Apache-2.0",
