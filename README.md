@@ -2,7 +2,7 @@
 
 Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Laravel, apps Node, Python, Go e Java, bancos, e-mail de teste, backups (inclusive na nuvem) e integração com GitHub, importação de outros ambientes e publicação em servidores, tudo em um painel em `http://127.0.0.1:7070` (ou `https://rdr-local-server.local`, com o servidor Web ligado). Zero dependências npm: o próprio Node.js vai embutido no instalador.
 
-> Status: v1.13. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
+> Status: v1.14. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
 
 ## O que faz
 

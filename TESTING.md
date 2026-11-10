@@ -29,6 +29,7 @@ Código de saída `0` = tudo certo; `1` = alguma falha. Linhas `PULOU` não são
 | `drive.test.js` | Google Drive em um clique: validações e, no modo completo, destino existente com criptografia |
 | `meili.test.js` | Meilisearch: quando migrar o banco (comparação numérica de versão), cópia de segurança antes do `--upgrade-db`, banco mais novo que o programa e primeira partida |
 | `pgvector.test.js` | pgvector: endereço de download, SHA-256 fixado no código, só os arquivos esperados, pacote incompleto, versão principal do PostgreSQL, aviso ao restaurar backup que usa a extensão e a rota de ativar por banco (pacote simulado; a compilação de verdade é testada no workflow `pgvector.yml`, com um PostgreSQL real) |
+| `tailwind.test.js` | Tailwind CSS: escolha da release 4.x e conferência do SHA-256 do compilador, opções por tipo de projeto (e as do modal), arquivos da pasta PHP (CLI e Vite, `php -l` e nome escapado), Node.js 20.19+/22.12+, texto para agentes de IA, processo Tailwind e criação pela API com o npm e o compilador simulados (nada baixa da internet) |
 | `caddy.test.js` | Caddyfile gerado (bloqueio de `docs/`, `CLAUDE.md`, `AGENTS.md`, `rdr.json`) e validação com o Caddy |
 | `release.test.js` | Mesma versão em `package.json`, rodapé e `CHANGELOG`; notas da release; ações do workflow fixadas por SHA |
 

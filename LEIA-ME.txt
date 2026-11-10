@@ -1,7 +1,7 @@
 RDR Local - ambiente local de hospedagem com HTTPS (estilo ServBay / Laragon)
 
 INSTALADOR (recomendado)
-Execute RDR-Local-Setup-1.13.0.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
+Execute RDR-Local-Setup-1.14.0.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
 C:\ProgramData\RDRLocal. Roda em segundo plano com icone perto do relogio (Abrir painel, Reiniciar, Sair); fechar navegador ou
 janelas nao derruba nada, e se o painel cair o icone o religa. Opcao de iniciar com o Windows. Atualizar = rodar o novo instalador por cima (ou pelo painel: Componentes e PHP > Verificar atualizacoes > RDR Local Server > Baixar e instalar).
 Gerar o instalador: bash installer/build.sh (precisa de nsis e npm). Detalhes na Ajuda > Guia de instalacao.

@@ -168,7 +168,7 @@ function renderSites() {
         <button class="ib" title="Abrir pasta" data-a="folder" data-id="${s.id}">${ic('folder')}</button>
         <button class="ib ${s.caps && s.caps.rdr ? 'go' : ''}" title="${s.caps && s.caps.rdr ? 'Aplicar o rdr.json deste projeto' : 'Gerar o rdr.json (configuração do projeto no repositório)'}" data-a="rdr" data-id="${s.id}">${ic('rdr')}</button>
         <button class="ib" title="Ferramentas do projeto (scripts, auditoria de segurança, .env, editor)" data-a="dev" data-id="${s.id}">${ic('tools')}</button>`}
-        <button class="ib ${Object.values(s.procs || {}).some(Boolean) ? 'go' : ''}" title="Processos (fila, agendador, Vite)" data-a="procs" data-id="${s.id}">${ic('proc')}</button>
+        <button class="ib ${Object.values(s.procs || {}).some(Boolean) ? 'go' : ''}" title="Processos (fila, agendador, Vite, Tailwind)" data-a="procs" data-id="${s.id}">${ic('proc')}</button>
         <button class="ib" title="Log de acesso" data-a="slog" data-id="${s.id}">${ic('log')}</button>
         <button class="ib del" title="Remover (não apaga a pasta)" data-a="del" data-id="${s.id}">${ic('del')}</button>
       </div></td></tr>`;
@@ -312,13 +312,13 @@ async function runDoctor() {
     box.innerHTML = Object.keys(groups).map((g) => `<div class="card"><h2>${esc(g)}</h2>` + groups[g].map((c) => `<div class="dg-i"><span class="dot ${c.status === 'ok' ? '' : c.status}"></span><div class="tx"><b>${esc(c.label)}</b><small>${esc(c.detail)}</small></div>${c.fix ? `<button class="sm" data-a="fix" data-fix="${esc(c.fix.action)}">${esc(c.fix.label)}</button>` : ''}</div>`).join('') + '</div>').join('');
   } catch (e) { box.innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
 }
-const PROC_LABEL = { queue: ['Fila de jobs', 'php artisan queue:work'], schedule: ['Agendador', 'php artisan schedule:work'], vite: ['Vite (hot reload)', 'npm run dev'], tunnel: ['Túnel público', 'cloudflared — link https://….trycloudflare.com'] };
+const PROC_LABEL = { queue: ['Fila de jobs', 'php artisan queue:work'], schedule: ['Agendador', 'php artisan schedule:work'], vite: ['Vite (hot reload)', 'npm run dev'], tailwind: ['Tailwind (recompilar ao salvar)', 'tailwindcss --watch — projetos criados com o compilador independente'], tunnel: ['Túnel público', 'cloudflared — link https://….trycloudflare.com'] };
 function renderProcs() {
   const s = S.sites.find((x) => x.id === window._procSite); if (!s) return;
   $('#procTitle').textContent = `Processos — ${s.name}`;
   $('#procBody').innerHTML = Object.keys(PROC_LABEL).map((k) => {
     const can = s.procCaps && s.procCaps[k]; const on = s.procs && s.procs[k];
-    const na = k === 'tunnel' ? ' — instale o Cloudflared na aba Componentes' : ' — indisponível neste projeto';
+    const na = k === 'tunnel' ? ' — instale o Cloudflared na aba Componentes' : k === 'tailwind' ? ' — precisa do componente Tailwind CSS (aba Componentes) e de um projeto criado com o compilador independente' : ' — indisponível neste projeto';
     const tl = k === 'tunnel' && on ? (s.tunnelUrl ? `<a href="${esc(s.tunnelUrl)}" target="_blank" rel="noopener">${esc(s.tunnelUrl)}</a> <button class="sec sm" data-a="copyUrl" data-url="${esc(s.tunnelUrl)}">Copiar</button>` : 'abrindo o túnel… aguarde alguns segundos') : '';
     return `<div class="proc-r"><div style="flex:1"><b>${PROC_LABEL[k][0]}</b><small class="muted" style="display:block">${PROC_LABEL[k][1]}${can ? '' : na}</small>${tl ? `<small style="display:block;word-break:break-all">${tl}</small>` : ''}</div>
       <span class="chip ${on ? 'on' : ''}">${on ? 'rodando' : 'parado'}</span>
@@ -520,13 +520,36 @@ function phpOptions(sel, withDefault = true) {
   sel.innerHTML = opts;
 }
 const HINTS = {
-  laravel: 'Cria o projeto completo com Composer (sempre a versão estável mais recente que o seu PHP suporta), cria o banco, ajusta o .env (URL, banco, e-mail, Redis) e roda as migrations. Com starter kit também roda npm install/build (precisa de Node.js).',
+  laravel: 'Cria o projeto completo com Composer (sempre a versão estável mais recente que o seu PHP suporta), cria o banco, ajusta o .env (URL, banco, e-mail, Redis) e roda as migrations. Com starter kit ou Tailwind também roda npm install/build; se faltar o Node.js, ele é baixado sozinho.',
   wordpress: 'Baixa o WordPress em português, cria o banco e cadastra o site. Na instalação use usuário root e senha vazia.',
-  empty: 'Cria a pasta com um index.php de teste e cadastra o site.',
+  empty: 'Cria a pasta com um index.php de teste e cadastra o site. Com Tailwind CSS, cria também src/input.css e um public/index.php de exemplo já estilizado (o site abre a pasta public/).',
   existing: 'Cadastra uma pasta que você já tem. Nada é copiado ou alterado.',
   proxy: 'Põe HTTPS em um app que já roda em outra porta (Node, Vite, Docker, Python…). Suporta WebSocket. Use a porta (3000) ou host:porta; para Docker no Windows, host.docker.internal:3000.',
   redirect: 'Qualquer acesso a este domínio é redirecionado para o endereço informado (o caminho é mantido).',
 };
+// Tailwind CSS no "Novo site": Laravel já nasce com o Tailwind 4 (só falta instalar e compilar); na pasta PHP o usuário escolhe como compilar.
+const TW_OPTS = { // [valor enviado ao servidor, texto da lista, explicação embaixo]
+  laravel: [
+    ['install', 'Instalar e compilar agora (recomendado)', 'O Laravel 12+ já traz o Tailwind 4 no projeto. O painel roda npm install e npm run build (baixa o Node.js sozinho, se faltar).'],
+    ['none', 'Não instalar agora', 'O Tailwind continua no package.json; rode npm install e npm run build quando quiser.'],
+  ],
+  empty: [
+    ['none', 'Nenhum', ''],
+    ['cli', 'Compilador independente (sem Node.js)','Baixa o compilador da Tailwind Labs (~110 MB, uma vez só), cria src/input.css e um public/index.php de exemplo e compila o CSS.'],
+    ['vite', 'Vite (usa Node.js)','Cria package.json, vite.config.js e um public/index.php de exemplo, e roda npm install e npm run build (baixa o Node.js sozinho, se faltar).'],
+  ],
+};
+/** Mostra o campo Tailwind só onde faz sentido (Laravel sem starter kit e pasta PHP vazia, ao criar). */
+function applyTailwind(mode, net) {
+  const f = $('#siteForm'); const opts = !editing && !net && TW_OPTS[mode];
+  $('#lbTailwind').style.display = opts && !(mode === 'laravel' && f.kit.value) ? '' : 'none'; // o starter kit já traz o Tailwind
+  if (!opts) return;
+  if (f.tailwind.dataset.mode !== mode) {
+    f.tailwind.innerHTML = opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    f.tailwind.dataset.mode = mode; f.tailwind.value = opts[0][0];
+  }
+  $('#twHint').textContent = (opts.find((o) => o[0] === f.tailwind.value) || [])[2] || '';
+}
 function applyMode() {
   const f = $('#siteForm'); const mode = editing ? (editing.type && editing.type !== 'php' ? editing.type : 'existing') : f.mode.value; const net = mode === 'proxy' || mode === 'redirect'; const isNew = !net && mode !== 'existing';
   $('#lbPath').textContent = isNew ? 'Pasta raiz dos projetos' : 'Pasta do projeto';
@@ -543,6 +566,7 @@ function applyMode() {
   $('#lbTarget').style.display = net ? '' : 'none'; f.target.required = net; $('#lbCors').style.display = mode === 'proxy' ? '' : (isNew || net ? 'none' : '');
   f.target.placeholder = mode === 'redirect' ? 'https://exemplo.com.br' : '3000  ou  http://127.0.0.1:3000';
   $('#modeHint').textContent = editing ? '' : HINTS[mode];
+  applyTailwind(mode, net);
   $('#siteSubmit').textContent = editing ? 'Salvar' : isNew ? 'Criar' : 'Adicionar';
 }
 function openSiteDlg(site) {
@@ -554,6 +578,7 @@ function openSiteDlg(site) {
   f.domain.value = site ? site.domain : '';
   f.aliases.value = site ? (site.aliases || []).join(', ') : ''; f.php.value = site ? site.php : 'default';
   f.docroot.value = site && site.docroot !== 'auto' ? site.docroot : '';
+  f.tailwind.dataset.mode = ''; // a escolha do Tailwind volta ao padrão a cada abertura
   f.dbEngine.value = 'mariadb'; f.target.value = site && site.target ? site.target : ''; f.env.value = site && site.env ? Object.entries(site.env).map(([k, v]) => `${k}=${v}`).join('\n') : ''; f.cors.checked = !!(site && site.cors);
   if (site && site.type && site.type !== 'php') f.path.value = '';
   applyMode();
@@ -702,6 +727,7 @@ $('#btnScan').onclick = act(async () => {
 });
 $('#siteCancel').onclick = () => $('#siteDlg').close();
 $('#siteForm').mode.onchange = applyMode;
+$('#siteForm').kit.onchange = applyMode; $('#siteForm').tailwind.onchange = applyMode;
 $('#siteForm').onsubmit = async (e) => {
   e.preventDefault(); const f = e.target;
   try {
@@ -710,7 +736,7 @@ $('#siteForm').onsubmit = async (e) => {
     } else if (['existing', 'proxy', 'redirect'].includes(f.mode.value)) {
       await api('POST', '/api/sites', { type: f.mode.value === 'existing' ? 'php' : f.mode.value, target: f.target.value, cors: f.cors.checked, env: f.env.value, name: f.name.value, path: f.path.value, domain: f.domain.value, aliases: f.aliases.value, php: f.php.value, docroot: f.docroot.value });
     } else {
-      await api('POST', '/api/project', { type: f.mode.value, name: f.name.value, dir: f.path.value, domain: f.domain.value, php: f.php.value, dbEngine: f.dbEngine.value, kit: f.kit.value });
+      await api('POST', '/api/project', { type: f.mode.value, name: f.name.value, dir: f.path.value, domain: f.domain.value, php: f.php.value, dbEngine: f.dbEngine.value, kit: f.kit.value, tailwind: $('#lbTailwind').style.display === 'none' ? '' : f.tailwind.value });
       jobDismissed.clear();
     }
     $('#siteDlg').close(); refresh();

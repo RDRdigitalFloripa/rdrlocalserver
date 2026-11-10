@@ -44,7 +44,7 @@
     <button type="button" data-theme-set="dark" title="Tema escuro" aria-label="Tema escuro" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   </div>
   <div class="side-foot muted" id="sideFoot"></div>
-  <div class="side-ver">RDR LOCAL SERVER v1.13.0</div>
+  <div class="side-ver">RDR LOCAL SERVER v1.14.0</div>
   <div class="side-credit">Criado por <a href="https://github.com/RDRdigitalFloripa/rdrlocalserver" target="_blank" rel="noopener">RDR Digital</a> · Apache-2.0</div>
 </aside>
 
@@ -657,6 +657,10 @@
           <option value="breeze-react">Breeze + React</option>
           <option value="breeze-vue">Breeze + Vue</option>
         </select>
+      </label>
+      <label id="lbTailwind">Tailwind CSS
+        <select name="tailwind"></select>
+        <span class="muted small" id="twHint"></span>
       </label>
       <label data-for="new">Banco de dados<select name="dbEngine"><option value="mariadb">MariaDB / MySQL</option><option value="postgres">PostgreSQL (só Laravel)</option><option value="">Nenhum</option></select></label>
       <label data-for="existing">Aliases (opcional)<input name="aliases" placeholder="www.meu-site.test, *.meu-site.test"></label>

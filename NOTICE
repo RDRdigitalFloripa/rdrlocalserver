@@ -16,6 +16,6 @@ pgvector (PostgreSQL License; compilado a partir do código-fonte oficial e publ
 Redis (conforme a versão baixada; veja a licença do pacote) · Mailpit (MIT) · Adminer (Apache-2.0 / GPL-2.0)
 phpMyAdmin (GPL-2.0) · Meilisearch (MIT/BUSL conforme a versão) · Cloudflared (Apache-2.0) · rclone (MIT)
 Python (PSF License) · Go (BSD-3-Clause) · Eclipse Temurin JDK (GPL-2.0 com Classpath Exception)
-MinGit / Git for Windows (GPL-2.0) · Spring Initializr (serviço web de terceiros)
+MinGit / Git for Windows (GPL-2.0) · Tailwind CSS, compilador independente (MIT) · Spring Initializr (serviço web de terceiros)
 
 Confira a licença de cada pacote na sua própria distribuição antes de redistribuir qualquer um deles.

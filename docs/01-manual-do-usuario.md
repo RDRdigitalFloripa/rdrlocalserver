@@ -1,6 +1,6 @@
 # Manual do usuário
 
-> RDR Local Server v1.13.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.14.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
@@ -37,6 +37,7 @@ No pé do menu há o seletor de **tema**: ☀ Claro, ◐ Automático (segue o Wi
 
 ### Criar
 - **Laravel novo**: última versão via `composer create-project`, `.env` ajustado (APP_URL, banco, e-mail, Redis), banco criado e `migrate` executado. Starter kits oficiais (Livewire, React, Vue) ou Breeze.
+- **Tailwind CSS** (campo no diálogo *Novo site*): no **Laravel**, "Instalar e compilar agora" (padrão) roda `npm install` e `npm run build` (o Laravel 12+ já traz o Tailwind 4 e o Vite); com starter kit o campo some, porque o kit já traz o Tailwind. Na **pasta PHP vazia** a escolha é *Nenhum*, *compilador independente* (sem Node.js: baixa um `.exe` oficial da Tailwind Labs, ~110 MB, uma vez só) ou *Vite* (usa Node.js). Com Tailwind a pasta nasce com `src/input.css` e um `public/index.php` de exemplo já estilizado, e o site abre a pasta `public/` (`src/`, `package.json` e `node_modules` não ficam expostos). Se o Node.js 20.19+ (ou 22.12+) faltar, o painel baixa o LTS mais novo sozinho. Qualquer falha de download ou do npm **não** impede o site de ser criado: o log diz o que rodar depois. Para recompilar ao salvar, use **Processos → Tailwind** (compilador independente) ou **Processos → Vite**; o comando `tailwindcss` também funciona no Terminal do site.
 - **WordPress novo** (pt-BR), **pasta PHP vazia** ou **pasta já existente** (com aliases e pasta pública).
 - **Banco**: MariaDB/MySQL ou PostgreSQL (o PostgreSQL é instalado e iniciado se preciso).
 - **Escanear pasta**: cada subpasta da raiz de projetos vira um site.
@@ -82,7 +83,7 @@ Roda **um comando por vez** na pasta do projeto, com PHP e Composer do site no P
 
 ## 7. Componentes e PHP
 
-- Instalar/atualizar: Caddy, PHP, Composer, MariaDB, PostgreSQL, pgvector (opcional), Redis, Mailpit, Adminer, phpMyAdmin, Cloudflared, Meilisearch. O pgvector é compilado pelo próprio projeto (o autor não publica binários para Windows), a partir de uma versão fixada, e o arquivo só é usado se o SHA-256 bater com o gravado no RDR Local; serve para o PostgreSQL 16 e 17 e volta sozinho se o PostgreSQL for reinstalado.
+- Instalar/atualizar: Caddy, PHP, Composer, MariaDB, PostgreSQL, pgvector (opcional), Redis, Mailpit, Adminer, phpMyAdmin, Cloudflared, Meilisearch, Tailwind CSS (opcional, compilador independente da série 4.x: só é instalado se o SHA-256 bater com o publicado pela Tailwind Labs). O pgvector é compilado pelo próprio projeto (o autor não publica binários para Windows), a partir de uma versão fixada, e o arquivo só é usado se o SHA-256 bater com o gravado no RDR Local; serve para o PostgreSQL 16 e 17 e volta sozinho se o PostgreSQL for reinstalado.
 - **Linguagens**: Node.js e Python em várias versões lado a lado (veja o *Guia de linguagens*).
 - **Verificar atualizações**: compara o RDR Local, Caddy, PHP, Node.js, Python, Go, JDK, Composer, phpMyAdmin, Mailpit, Meilisearch, Cloudflared e Adminer com as versões mais novas. O que usa o componente é parado e religado sozinho; o php.ini é mantido. MariaDB e PostgreSQL **não** são atualizados automaticamente (risco para os dados).
 - **Aviso automático**: o RDR Local confere atualizações ao abrir e a cada 6 horas e mostra um número ao lado de *Componentes e PHP*. Nada é instalado sem você clicar. Desligável em *Configurações*.
