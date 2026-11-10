@@ -30,6 +30,7 @@ const HELP = `RDR Local — linha de comando
   rdr open <domínio>          abre o site no navegador
   rdr doctor                  roda o Diagnóstico
   rdr backup                  backup de todos os bancos agora
+  rdr up [pasta] [--yes]      aplica o rdr.json da pasta (site, banco, serviços); --yes confirma o comando de um app
 
 Serviços: ${Object.keys(NAMES).join(', ')}`;
 
@@ -70,6 +71,25 @@ async function main() {
       break;
     }
     case 'backup': await call('POST', '/api/backup/run-all', {}); console.log('Backup iniciado (acompanhe no painel).'); break;
+    case 'up': {
+      const dir = require('path').resolve(process.argv.slice(3).find((a) => !a.startsWith('-')) || process.cwd());
+      const yes = process.argv.includes('--yes') || process.argv.includes('-y');
+      const p = await call('POST', '/api/rdrfile/plan', { path: dir });
+      console.log(p.file);
+      p.steps.forEach((x) => console.log('  • ' + x));
+      p.warnings.forEach((x) => console.log('  ! ' + x));
+      if (p.errors.length) { p.errors.forEach((x) => console.error('  ✘ ' + x)); process.exitCode = 1; break; }
+      if (p.needsConfirm && !yes) throw new Error(`Este projeto roda o comando: ${p.needsConfirm}\nSe confia nele, repita com --yes.`);
+      await call('POST', '/api/rdrfile/apply', { path: dir, confirmCmd: yes });
+      const title = `Aplicar rdr.json: ${p.name}`; let finished = false;
+      for (let i = 0; i < 300 && !finished; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const j = [...(await call('GET', '/api/state')).jobs].reverse().find((x) => x.title === title);
+        if (j && j.status !== 'running') { finished = true; j.log.forEach((l) => console.log('  ' + l)); process.exitCode = j.status === 'done' ? 0 : 1; }
+      }
+      if (!finished) console.log('Ainda aplicando: acompanhe no painel.');
+      break;
+    }
     case 'ajuda': case 'help': case '--help': case '-h': console.log(HELP); break;
     default: console.error('Comando desconhecido: ' + cmd + '\n'); console.log(HELP); process.exitCode = 2;
   }

@@ -54,6 +54,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 - **Variáveis de ambiente** (uma por linha, `CHAVE=valor`): valem para o PHP do site, o terminal e os comandos do painel, e vencem o `.env`. Reinicie o Servidor Web para aplicar. Ficam em `config\config.json` em texto puro: **não guarde segredos de produção**.
 - **Liberar CORS** (para APIs).
 - Bloqueios automáticos: `/.env`, `/.git` e `/storage/logs`.
+- **rdr.json** (ícone na linha do site, ou `rdr up` no terminal): guarda domínio, PHP, banco e serviços **dentro do projeto**, no Git. Quem clona aplica o arquivo e ganha o mesmo ambiente. Veja o guia *rdr.json*.
 
 ### Processos do site
 Ícone de processos na linha do site: `queue:work`, `schedule:work`, `npm run dev` (Vite) e **Túnel público** (Cloudflared, link `https://*.trycloudflare.com`). Comandos rápidos: Migrate, Limpar caches, Storage link, Composer install, Migrate:fresh --seed.

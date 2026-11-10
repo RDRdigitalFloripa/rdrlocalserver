@@ -10,6 +10,7 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 - Adminer e phpMyAdmin só atendem a própria máquina.
 - Caddy bloqueia `/.env`, `/.git` e `/storage/logs` em todos os sites, e também `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` quando esses arquivos existem na pasta pública.
 - A atualização do próprio RDR Local só baixa de `github.com/…/releases/download` e só abre o instalador se o SHA-256 conferir.
+- O `rdr.json` aplica só campos validados e não executa scripts. O comando de um app (`app.cmd`) exige confirmação (`--yes` no `rdr up`), e *Gerar rdr.json* não exporta variáveis de ambiente.
 - MCP não tem ferramentas destrutivas; terminal só com liberação explícita.
 - Restaurar e excluir banco sempre salvam backup antes.
 - Publicar: só roda comandos de receitas que você cadastrou; chaves SSH e senhas FTP ficam cifradas (DPAPI); a impressão digital do servidor é confirmada por você e depois exigida; `.env` nunca é enviado por FTP/SFTP; nada é apagado no servidor sem confirmação.

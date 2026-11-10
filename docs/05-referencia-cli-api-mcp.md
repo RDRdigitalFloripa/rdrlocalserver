@@ -14,6 +14,7 @@ Fala com o painel em execução (`RDR_PORT`, padrão 7070).
 | `rdr open <domínio>` | Abre no navegador |
 | `rdr doctor` | Roda o Diagnóstico |
 | `rdr backup` | Backup de todos os bancos |
+| `rdr up [pasta] [--yes]` | Aplica o `rdr.json` da pasta (padrão: a atual): cria/atualiza o site, o banco e liga os serviços. `--yes` confirma o comando de um app. Veja *rdr.json* |
 
 Serviços: `web`, `mariadb`, `postgres`, `redis`, `mailpit`, `meilisearch`, `dns`.
 
@@ -30,6 +31,7 @@ Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 
 | Apps | `POST /api/apps/new` (cria arquivos do modelo + deps + site), `/api/apps/ctl` (`start`\|`stop`\|`restart`), `/api/apps/deps`; `GET /api/apps/detect?path=`, `/api/apps/templates` |
 | Linguagens | `GET /api/runtimes/available?rt=node\|python\|go\|java`; `POST /api/runtimes/install`, `/api/runtimes/default`, `/api/runtimes/remove` |
 | Sites | `POST /api/sites`, `/api/sites/update`, `/api/sites/remove`, `/api/sites/toggle`, `/api/sites/artisan`, `/api/sites/proc`, `/api/sites/terminal`, `/api/sites/folder`, `/api/scan`, `/api/project` |
+| rdr.json | `POST /api/rdrfile/plan` (`id` do site ou `path`; devolve `steps`, `warnings`, `errors`, `needsConfirm`); `POST /api/rdrfile/apply` (`id` ou `path`, `confirmCmd`); `POST /api/rdrfile/export` (`id`, `overwrite`) |
 | Terminal | `GET /api/term/info`, `/api/term/out`; `POST /api/term/run`, `/api/term/kill` |
 | Bancos | `GET /api/db/list`, `/api/db/backups`; `POST /api/db/create`, `/api/db/drop`, `/api/db/backup`, `/api/db/restore`, `/api/db/backup-delete` |
 | Nuvem e avisos | `GET /api/cloud` (nunca devolve credenciais); `POST /api/cloud/connect`, `/api/cloud/remove`, `/api/cloud/settings`, `/api/cloud/encryption`, `/api/cloud/test`, `/api/cloud/upload`, `/api/cloud/verify`, `/api/notify/settings`, `/api/notify/test` |

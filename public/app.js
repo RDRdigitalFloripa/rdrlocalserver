@@ -7,6 +7,7 @@ const ICON = {
   open: '<path d="M7 17 17 7M8 7h9v9"/>', play: '<path d="M6 4v16l14-8z"/>', pause: '<path d="M8 5v14M16 5v14"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', term: '<path d="m5 7 5 5-5 5M12 18h7"/>', folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
   redo: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>', pkg: '<path d="M12 3 4 7v10l8 4 8-4V7zM4 7l8 4 8-4M12 11v10"/>',
+  rdr: '<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12c-1 0-1 1-1 2s0 2 1 2M14 12c1 0 1 1 1 2s0 2-1 2"/>',
   log: '<path d="M5 5h14M5 10h14M5 15h9"/>', proc: '<path d="M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01"/>', del: '<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',
 };
 const ic = (n) => `<svg viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -160,7 +161,8 @@ function renderSites() {
         ${isApp ? `<button class="ib" title="Instalar dependências (npm install / pip)" data-a="appdeps" data-id="${s.id}">${ic('pkg')}</button>
         <button class="ib" title="Log do app" data-a="applog" data-id="${s.id}">${ic('proc')}</button>` : ''}
         ${net ? '' : `<button class="ib" title="Terminal do site (mini terminal)" data-a="term" data-id="${s.id}">${ic('term')}</button>
-        <button class="ib" title="Abrir pasta" data-a="folder" data-id="${s.id}">${ic('folder')}</button>`}
+        <button class="ib" title="Abrir pasta" data-a="folder" data-id="${s.id}">${ic('folder')}</button>
+        <button class="ib ${s.caps && s.caps.rdr ? 'go' : ''}" title="${s.caps && s.caps.rdr ? 'Aplicar o rdr.json deste projeto' : 'Gerar o rdr.json (configuração do projeto no repositório)'}" data-a="rdr" data-id="${s.id}">${ic('rdr')}</button>`}
         <button class="ib ${Object.values(s.procs || {}).some(Boolean) ? 'go' : ''}" title="Processos (fila, agendador, Vite)" data-a="procs" data-id="${s.id}">${ic('proc')}</button>
         <button class="ib" title="Log de acesso" data-a="slog" data-id="${s.id}">${ic('log')}</button>
         <button class="ib del" title="Remover (não apaga a pasta)" data-a="del" data-id="${s.id}">${ic('del')}</button>
@@ -420,6 +422,20 @@ document.addEventListener('click', async (e) => {
     case 'appUpdate': {
       if (!(await ui.confirm({ title: 'Atualizar o RDR Local', okText: 'Baixar e abrir o instalador', html: `Vai baixar a versão <b>${esc(t.dataset.new)}</b>, conferir o SHA-256 e abrir o instalador. Ele <b>encerra o RDR Local</b> (sites e serviços ficam fora do ar até você abrir de novo) e mantém seus dados. Continuar?` }))) break;
       await api('POST', '/api/updates/app'); jobDismissed.clear(); ui.toast('Baixando… acompanhe no log da tarefa.'); break;
+    }
+    case 'rdr': {
+      if (!site) break;
+      if (site.caps && site.caps.rdr) {
+        const p = await api('POST', '/api/rdrfile/plan', { id });
+        if (p.errors.length) { await ui.alert({ title: 'rdr.json com problema', tone: 'bad', message: 'Corrija o arquivo e tente de novo:', pre: p.errors.join('\n') }); break; }
+        const list = (a) => '<ul style="margin:6px 0 6px 18px;padding:0">' + a.map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>';
+        const go = await ui.confirm({ title: 'Aplicar rdr.json', okText: 'Aplicar', html: `Vai fazer:${list(p.steps)}${p.warnings.length ? `<b>Avisos:</b>${list(p.warnings)}` : ''}${p.needsConfirm ? `<b>Atenção:</b> o app roda o comando <code>${esc(p.needsConfirm)}</code> na sua máquina. Só aplique se confiar neste projeto.<br>` : ''}Repetir não duplica nada.` });
+        if (!go) break;
+        await api('POST', '/api/rdrfile/apply', { id, confirmCmd: !!p.needsConfirm }); jobDismissed.clear(); ui.toast('Aplicando… acompanhe no log da tarefa.');
+      } else if (await ui.confirm({ title: 'Gerar rdr.json', okText: 'Gerar', html: 'Cria o arquivo <code>rdr.json</code> na pasta do projeto com o domínio, o PHP, o banco e os serviços deste site, para a equipe montar o mesmo ambiente depois do <code>git clone</code> (comando <code>rdr up</code> ou botão deste ícone). <b>As variáveis de ambiente não são incluídas</b> (podem ter segredos). Depois, faça o commit do arquivo.' })) {
+        const r = await api('POST', '/api/rdrfile/export', { id }); ui.toast('rdr.json criado: ' + r.file); await refresh();
+      }
+      break;
     }
     case 'phpCfg': await phpOpen(id); break;
     case 'phpTab': phpTab(t.dataset.tab); break;

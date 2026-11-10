@@ -33,6 +33,7 @@ const autostart = require('./lib/autostart');
 const updates = require('./lib/updates');
 const appupdate = require('./lib/appupdate');
 const aifiles = require('./lib/aifiles');
+const rdrfile = require('./lib/rdrfile');
 const procs = require('./lib/procs');
 const doctor = require('./lib/doctor');
 const term = require('./lib/term');
@@ -55,7 +56,7 @@ function state() {
     platform: process.platform,
     version: VERSION,
     services: svc,
-    sites: sites.list(web).map((s) => ({ ...s, app: s.type === 'app' ? { ...apps.status(s.id), runtimeVersion: s.runtime === 'custom' ? '' : rts.resolve(s.runtime, s.rtVersion) } : undefined, procs: procs.status(s.id), tunnelUrl: procs.tunnelUrl(s.id), procCaps: procs.capabilities(s), caps: s.path ? { artisan: exists(path.join(s.path, 'artisan')), composer: exists(path.join(s.path, 'composer.json')), npm: exists(path.join(s.path, 'package.json')), git: isDir(path.join(s.path, '.git')) } : {} })),
+    sites: sites.list(web).map((s) => ({ ...s, app: s.type === 'app' ? { ...apps.status(s.id), runtimeVersion: s.runtime === 'custom' ? '' : rts.resolve(s.runtime, s.rtVersion) } : undefined, procs: procs.status(s.id), tunnelUrl: procs.tunnelUrl(s.id), procCaps: procs.capabilities(s), caps: s.path ? { artisan: exists(path.join(s.path, 'artisan')), composer: exists(path.join(s.path, 'composer.json')), npm: exists(path.join(s.path, 'package.json')), git: isDir(path.join(s.path, '.git')), rdr: exists(path.join(s.path, 'rdr.json')) } : {} })),
     components: comps.listComponents(),
     runtimes: rts.summary(),
     updates: updates.summary(),
@@ -73,6 +74,12 @@ function state() {
 }
 
 const ok = () => ({ ok: true });
+/** Pasta do projeto de uma requisição do rdr.json: por id de site ou por caminho (rdr up). */
+const rdrDir = (b) => {
+  if (b.id) { const s = cfg.sites.find((x) => x.id === String(b.id)); if (!s || !s.path) throw new Error('Site não encontrado ou sem pasta.'); return s.path; }
+  const p = String(b.path || '').trim(); if (!p || !isDir(p)) throw new Error('Pasta não encontrada: ' + p);
+  return path.resolve(p);
+};
 const routes = {
   'GET /api/state': async () => state(),
   'GET /api/host-status': async () => sysinfo.metrics(),
@@ -239,6 +246,15 @@ const routes = {
   'POST /api/sites/proc': async (b) => { if (b.action === 'start') procs.start(b.id, b.kind); else if (b.action === 'stop') procs.stop(b.id, b.kind); else throw new Error('Ação inválida'); return ok(); },
   'POST /api/sites/terminal': async (b) => { sites.openTerminal(b.id); return ok(); },
   'POST /api/sites/folder': async (b) => { sites.openFolder(b.id); return ok(); },
+  // ----- rdr.json: configuração do projeto dentro do repositório -----
+  'POST /api/rdrfile/plan': async (b) => rdrfile.plan(rdrDir(b)),
+  'POST /api/rdrfile/apply': async (b) => {
+    const dir = rdrDir(b); const p = rdrfile.plan(dir);
+    if (p.errors.length) throw new Error(p.errors.join(' '));
+    if (p.needsConfirm && !b.confirmCmd) throw new Error(`Este projeto roda o comando "${p.needsConfirm}" na sua máquina. Confirme para aplicar.`);
+    startJob(`Aplicar rdr.json: ${p.name}`, (jl) => rdrfile.apply(dir, { confirmCmd: !!b.confirmCmd }, jl), 'rdrfile'); return ok();
+  },
+  'POST /api/rdrfile/export': async (b) => { const r = rdrfile.exportSite(String(b.id || ''), { overwrite: !!b.overwrite }); return { ok: true, file: r.file, spec: r.spec }; },
   'GET /api/import/sources': async () => ({ sources: importer.sources() }),
   'POST /api/import/scan': async (b) => ({ list: importer.scan({ kind: String(b.kind || ''), path: String(b.path || '') }) }),
   'GET /api/dbimport/ports': async () => ({ ports: await dbimport.detectPorts() }),
