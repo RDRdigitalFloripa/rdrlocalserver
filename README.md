@@ -37,6 +37,8 @@ bash installer/build.sh        # gera o instalador (precisa de nsis, npm e pytho
 
 Variáveis úteis: `RDR_PORT`, `RDR_HOME`, `RDR_HOSTS`. Detalhes em [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
 
+Releases: a tag `vX.Y.Z` dispara o GitHub Actions, que gera o instalador e o `.sha256` e publica a release (é ela que o painel consulta para avisar de atualização). Passo a passo em [RELEASING.md](RELEASING.md).
+
 ## Segurança
 
 O painel **não tem autenticação** e escuta só em `127.0.0.1`. Não o exponha na rede nem por túnel. Reporte vulnerabilidades como descrito em [SECURITY.md](SECURITY.md).

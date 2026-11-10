@@ -6,6 +6,7 @@
 - Atualização do próprio RDR Local pelo painel (Componentes e PHP → Verificar atualizações): consulta a última release do GitHub, baixa o instalador, confere o SHA-256 publicado junto (`.sha256`) e abre o assistente. Recusa qualquer endereço fora de `github.com/…/releases/download`. Precisa de release com `RDR-Local-Setup-<versão>.exe` e `.sha256` em repositório público.
 - Verificação automática de atualizações 30 s depois de abrir e a cada 6 horas (desligável em Configurações), com selo numérico em "Componentes e PHP". Não instala nada sozinha.
 - A lista de atualizações passou a incluir Composer e phpMyAdmin.
+- Publicação de releases automatizada: a tag `vX.Y.Z` gera o instalador e o `.sha256` no GitHub Actions e publica a release (`.github/workflows/release.yml`, `RELEASING.md`). O `.sha256` agora leva só o nome do arquivo, então `sha256sum -c` funciona na pasta do download.
 
 ## 1.9.2
 - Componentes e PHP → Linguagens: cada linguagem não instalada (Node, Python, Go, JDK) ganha uma linha com o botão "Instalar versão LTS" (antes o JDK só aparecia depois de "Ver versões disponíveis").

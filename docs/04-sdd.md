@@ -61,6 +61,7 @@ Atalho ──► wscript open.vbs ──► schtasks /Run "RDR Local Start" (ele
 - Instalador NSIS (`installer/rdr-local.nsi`, gerado por `installer/build.sh`): programa em `Program Files\RDR Local\{app,runtime,launcher}`, Node.js LTS embutido, dados em `ProgramData\RDRLocal` (sobrevivem a atualizações).
 - `server.js` separa **código** (`P.app`) de **dados** (`P.root` = `RDR_HOME`).
 - Tarefas agendadas: `RDR Local Start` (sob demanda, usada pelos atalhos) e `RDR Local` (no logon, opcional; liga/desliga em Configurações → Inicialização).
+- Release: a tag `vX.Y.Z` aciona `.github/workflows/release.yml` (Ubuntu + `nsis` + `python3-pil`): confere tag × `package.json` × rodapé do painel × seção do `CHANGELOG.md`, checa a sintaxe, roda `installer/build.sh`, valida o `.exe` (cabeçalho MZ, tamanho, SHA-256) e publica a release com `RDR-Local-Setup-<versão>.exe` e `.sha256`. As actions de terceiros são oficiais e fixadas por commit. A execução manual só gera o instalador (artefato de 7 dias). Passo a passo em `RELEASING.md`.
 - Encerramento limpo: `POST /api/quit` aciona o `shutdown()` (para processos do site e serviços); `stop.ps1` o usa na atualização e na desinstalação.
 - Instância única da bandeja por mutex `Global\RDRLocalTray`; um segundo lançamento só abre o painel.
 

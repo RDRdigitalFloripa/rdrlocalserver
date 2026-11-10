@@ -27,4 +27,5 @@ cd installer
 python3 make-side.py "$VERSION"
 makensis -V2 -DSTAGE="$STAGE" -DVERSION="$VERSION" rdr-local.nsi
 mv "RDR-Local-Setup-$VERSION.exe" dist/
-sha256sum "dist/RDR-Local-Setup-$VERSION.exe" | tee "dist/RDR-Local-Setup-$VERSION.sha256"
+# O .sha256 leva só o nome do arquivo (sem "dist/"), para "sha256sum -c" funcionar na pasta do download.
+(cd dist && sha256sum "RDR-Local-Setup-$VERSION.exe" | tee "RDR-Local-Setup-$VERSION.sha256")

@@ -1,0 +1,102 @@
+# Gera o instalador do RDR Local e publica a release no GitHub.
+#
+#  - Tag vX.Y.Z (igual à versão do package.json): gera o instalador + .sha256 e PUBLICA a release.
+#    É essa release que o painel consulta em "Componentes e PHP > Verificar atualizações".
+#  - Execução manual (Actions > Release > Run workflow): só gera o instalador e guarda como artefato
+#    por 7 dias, sem publicar nada. Use para testar o build antes de criar a tag.
+#
+# Passo a passo para publicar: RELEASING.md
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  instalador:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write # criar a release e anexar os arquivos
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Conferir versão e notas
+        id: ver
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "::error::A tag ${GITHUB_REF_NAME} não bate com a versão do package.json (v${VERSION}). Ajuste a versão ou crie a tag certa."
+            exit 1
+          fi
+          if ! grep -q "RDR LOCAL SERVER v${VERSION}" public/index.html; then
+            echo "::error::public/index.html não mostra a versão v${VERSION} (rodapé da barra lateral)."
+            exit 1
+          fi
+          bash installer/release-notes.sh "${VERSION}" > release-notes.md
+          echo "Versão ${VERSION}; notas:"
+          cat release-notes.md
+
+      - name: Verificar a sintaxe do código
+        run: |
+          set -euo pipefail
+          for f in server.js mcp.js rdr.js lib/*.js public/app.js; do node --check "$f"; done
+
+      - name: Instalar NSIS e Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nsis python3-pil
+
+      - name: Gerar o instalador
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: bash installer/build.sh "${VERSION}"
+
+      - name: Conferir o instalador e o SHA-256
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd installer/dist
+          ls -l
+          exe="RDR-Local-Setup-${VERSION}.exe"
+          test -s "${exe}"
+          [ "$(head -c 2 "${exe}")" = "MZ" ] || { echo "::error::${exe} não é um executável do Windows."; exit 1; }
+          [ "$(stat -c %s "${exe}")" -gt 10000000 ] || { echo "::error::${exe} está pequeno demais (Node.js embutido não entrou?)."; exit 1; }
+          sha256sum -c "RDR-Local-Setup-${VERSION}.sha256"
+
+      - name: Publicar a release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          {
+            echo
+            echo '---'
+            echo '**Instalação:** baixe o `.exe` e execute como Administrador. Para conferir a integridade, compare o SHA-256 com o arquivo `.sha256` (no PowerShell: `Get-FileHash .\RDR-Local-Setup-'"${VERSION}"'.exe -Algorithm SHA256`). O instalador ainda não tem assinatura digital, então o SmartScreen do Windows pode avisar.'
+            echo
+            echo 'Quem já usa o RDR Local pode atualizar em *Componentes e PHP → Verificar atualizações*.'
+          } >> release-notes.md
+          gh release create "${GITHUB_REF_NAME}" \
+            "installer/dist/RDR-Local-Setup-${VERSION}.exe" \
+            "installer/dist/RDR-Local-Setup-${VERSION}.sha256" \
+            --title "RDR Local Server ${VERSION}" \
+            --notes-file release-notes.md \
+            --verify-tag
+
+      - name: Guardar o instalador (teste manual, sem publicar)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: RDR-Local-Setup-${{ steps.ver.outputs.version }}
+          path: installer/dist/*
+          retention-days: 7
+          if-no-files-found: error
