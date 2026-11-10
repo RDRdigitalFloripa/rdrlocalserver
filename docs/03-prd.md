@@ -65,6 +65,7 @@ Hospedagem real (o RDR Local não serve produção; apenas **publica** para ela 
 | RF-36 | Verificação automática de atualizações (a cada 6 h, desligável) com selo no menu; inclui Composer e phpMyAdmin | Média |
 | RF-37 | `rdr.json`: configuração do projeto no repositório (domínio, PHP, banco, serviços), gerada a partir de um site ou aplicada com prévia; comando `rdr up` | Alta |
 | RF-38 | Ferramentas do projeto: scripts do Composer e do npm, auditoria de segurança (`composer audit` e `npm audit`), comparação e edição do `.env` com o `.env.example` e atalhos (editor, GitHub, Claude Code) | Média |
+| RF-39 | Plano do projeto: especificação, tarefas e diário em `docs/` (padrão `NN-DD-MM-AAAA-nome.md`), editáveis pelo painel e por agentes de IA, com cartão de andamento no Painel e regra de fluxo no `CLAUDE.md`/`AGENTS.md` | Alta |
 
 ## 5. Requisitos não funcionais
 

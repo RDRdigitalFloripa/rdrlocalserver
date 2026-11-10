@@ -58,6 +58,10 @@
           </div>
           <div id="sitesTable"></div>
         </div>
+        <div class="card" id="planCard" hidden>
+          <div class="card-h"><h2>Plano dos projetos</h2></div>
+          <div id="planList"></div>
+        </div>
       </div>
       <div class="right">
         <div class="card"><h2>Carga da CPU</h2><div id="mCpu"></div></div>
@@ -356,9 +360,10 @@
 <dialog id="devDlg" style="width:min(860px,94vw)">
   <h3 id="devTitle">Ferramentas do projeto</h3>
   <div class="row" id="devShort" style="gap:6px;flex-wrap:wrap;margin:6px 0 10px"></div>
-  <div class="row" id="devTabs" style="gap:6px;margin:8px 0"><button class="sm" data-a="devTab" data-tab="Scripts">Scripts e auditoria</button><button class="sec sm" data-a="devTab" data-tab="Env">.env</button></div>
+  <div class="row" id="devTabs" style="gap:6px;margin:8px 0"><button class="sm" data-a="devTab" data-tab="Scripts">Scripts e auditoria</button><button class="sec sm" data-a="devTab" data-tab="Env">.env</button><button class="sec sm" data-a="devTab" data-tab="Plano">Plano</button></div>
   <div id="devTabScripts"><div class="muted small">Carregando…</div></div>
   <div id="devTabEnv" hidden></div>
+  <div id="devTabPlano" hidden></div>
   <div class="row end" style="margin-top:12px"><button type="button" class="sec" id="devClose">Fechar</button></div>
 </dialog>
 

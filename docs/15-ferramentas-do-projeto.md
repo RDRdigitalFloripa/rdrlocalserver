@@ -1,6 +1,6 @@
 # Ferramentas do projeto
 
-Na lista de sites, o ícone de **ajustes** (três linhas com marcadores) abre *Ferramentas — nome do site*, com atalhos, scripts, auditoria de segurança e o editor do `.env`. Vale para sites com pasta (PHP e apps).
+Na lista de sites, o ícone de **ajustes** (três linhas com marcadores) abre *Ferramentas — nome do site*, com atalhos, scripts, auditoria de segurança, o editor do `.env` e o **Plano** do projeto (veja o guia *Plano do projeto*). Vale para sites com pasta (PHP e apps).
 
 ## Atalhos
 

@@ -37,6 +37,7 @@ const rdrfile = require('./lib/rdrfile');
 const scripts = require('./lib/scripts');
 const envfile = require('./lib/envfile');
 const devtools = require('./lib/devtools');
+const plan = require('./lib/plan');
 const procs = require('./lib/procs');
 const doctor = require('./lib/doctor');
 const term = require('./lib/term');
@@ -278,6 +279,14 @@ const routes = {
   'POST /api/env/set': async (b) => { envfile.set(devSite(b.id), String(b.key || ''), b.value === undefined || b.value === null ? '' : String(b.value)); return ok(); },
   'POST /api/env/add-missing': async (b) => ({ ok: true, added: envfile.addMissing(devSite(b.id), Array.isArray(b.keys) ? b.keys.map(String).slice(0, 200) : null) }),
   'POST /api/env/init': async (b) => { envfile.init(devSite(b.id)); return ok(); },
+  // ----- plano do projeto: especificação, tarefas e diário (arquivos de docs/) -----
+  'GET /api/plan': async (_, q) => plan.get(devSite(q.get('id'))),
+  'GET /api/plan/overview': async () => ({ projects: plan.overview(cfg.sites) }),
+  'GET /api/plan/file': async (_, q) => plan.file(devSite(q.get('id')), String(q.get('kind') || '')),
+  'POST /api/plan/init': async (b) => ({ ok: true, created: plan.init(devSite(b.id)) }),
+  'POST /api/plan/task': async (b) => { plan.setState(devSite(b.id), b.line, b.expect, String(b.state)); return ok(); },
+  'POST /api/plan/add-task': async (b) => { plan.addTask(devSite(b.id), b.phase, b.text); return ok(); },
+  'POST /api/plan/diary': async (b) => { plan.addDiary(devSite(b.id), b.text); return ok(); },
   'GET /api/import/sources': async () => ({ sources: importer.sources() }),
   'POST /api/import/scan': async (b) => ({ list: importer.scan({ kind: String(b.kind || ''), path: String(b.path || '') }) }),
   'GET /api/dbimport/ports': async () => ({ ports: await dbimport.detectPorts() }),

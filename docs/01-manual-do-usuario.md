@@ -38,7 +38,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 - **WordPress novo** (pt-BR), **pasta PHP vazia** ou **pasta já existente** (com aliases e pasta pública).
 - **Banco**: MariaDB/MySQL ou PostgreSQL (o PostgreSQL é instalado e iniciado se preciso).
 - **Escanear pasta**: cada subpasta da raiz de projetos vira um site.
-- **CLAUDE.md, AGENTS.md e docs/**: todo projeto novo (Laravel, WordPress, pasta PHP e app) já vem com esses dois arquivos de instruções para agentes de IA e a pasta `docs/`. Os arquivos mandam responder **sempre em português do Brasil**, explicam o padrão de nome dos documentos (`NN-DD-MM-AAAA-nome.md`, por exemplo `01-10-10-2026-arquivo.md`) e registram o ambiente (endereço, banco, e-mail de teste). A `docs/` já recebe `01-<data>-visao-geral.md`. Arquivos que já existem nunca são sobrescritos; projetos clonados do GitHub, importados ou em "pasta que já tem um app" não recebem nada. O Caddy não serve esses arquivos no navegador. Dá para desligar em *Configurações*.
+- **CLAUDE.md, AGENTS.md e docs/**: todo projeto novo (Laravel, WordPress, pasta PHP e app) já vem com esses dois arquivos de instruções para agentes de IA e a pasta `docs/`. Os arquivos mandam responder **sempre em português do Brasil**, explicam o padrão de nome dos documentos (`NN-DD-MM-AAAA-nome.md`, por exemplo `01-10-10-2026-arquivo.md`) e registram o ambiente (endereço, banco, e-mail de teste). A `docs/` já recebe `01-<data>-visao-geral.md` e o **plano** do projeto (`…-especificacao.md`, `…-tarefas.md` e `…-diario.md`). Arquivos que já existem nunca são sobrescritos; projetos clonados do GitHub, importados ou em "pasta que já tem um app" não recebem nada. O Caddy não serve esses arquivos no navegador. Dá para desligar em *Configurações*.
 
 ### Tipos de site
 - **PHP** (padrão): serve a pasta com a versão de PHP escolhida; detecta Laravel/WordPress e a pasta pública.
@@ -56,6 +56,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 - Bloqueios automáticos: `/.env`, `/.git` e `/storage/logs`.
 - **rdr.json** (ícone na linha do site, ou `rdr up` no terminal): guarda domínio, PHP, banco e serviços **dentro do projeto**, no Git. Quem clona aplica o arquivo e ganha o mesmo ambiente. Veja o guia *rdr.json*.
 - **Ferramentas do projeto** (ícone de ajustes na linha do site): scripts do `composer.json` e do `package.json` com um clique, **auditoria de segurança** (`composer audit` e `npm audit`), comparação do `.env` com o `.env.example` e atalhos para o editor, o GitHub e o terminal com o Claude Code. Veja o guia *Ferramentas do projeto*.
+- **Plano do projeto** (aba *Plano* das Ferramentas e cartão no Painel): especificação, tarefas e diário em `docs/`, editados por você e pelo agente de IA, com o andamento no Painel. Projetos novos já nascem com ele. Veja o guia *Plano do projeto*.
 
 ### Processos do site
 Ícone de processos na linha do site: `queue:work`, `schedule:work`, `npm run dev` (Vite) e **Túnel público** (Cloudflared, link `https://*.trycloudflare.com`). Comandos rápidos: Migrate, Limpar caches, Storage link, Composer install, Migrate:fresh --seed.

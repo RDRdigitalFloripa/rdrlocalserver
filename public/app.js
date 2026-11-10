@@ -81,7 +81,7 @@ function go() {
   if (page === 'github') loadGh(true);
   if (page === 'publicar') loadPb();
   if (S) renderAll();
-  if (page === 'painel') { renderMetrics(); if (typeof loadGitStatus === 'function') loadGitStatus(); }
+  if (page === 'painel') { renderMetrics(); if (typeof loadGitStatus === 'function') loadGitStatus(); loadPlanOverview(); }
 }
 window.addEventListener('hashchange', go);
 
@@ -93,6 +93,7 @@ function renderAll() {
   if (page === 'email') renderMail();
   if (page === 'bancos') renderConn();
   if (page === 'terminal') syncTerminalSites();
+  if (page === 'painel') renderPlanCard();
 }
 
 function renderSide() {
@@ -319,15 +320,16 @@ function renderProcs() {
 const DEV = { id: '', info: null, env: null, tab: 'Scripts' };
 const devSiteNow = () => S.sites.find((x) => x.id === DEV.id);
 function devTabShow() {
-  ['Scripts', 'Env'].forEach((x) => { $('#devTab' + x).hidden = x !== DEV.tab; });
+  ['Scripts', 'Env', 'Plano'].forEach((x) => { $('#devTab' + x).hidden = x !== DEV.tab; });
   document.querySelectorAll('#devTabs [data-tab]').forEach((b) => b.classList.toggle('sec', b.dataset.tab !== DEV.tab));
 }
-async function devOpen(id) {
-  DEV.id = id; DEV.info = null; DEV.env = null; DEV.tab = 'Scripts';
+async function devOpen(id, tab = 'Scripts') {
+  DEV.id = id; DEV.info = null; DEV.env = null; DEV.tab = tab; PLAN.data = null; PLAN.spec = null; PLAN.sub = 'Tarefas'; $('#devTabPlano').innerHTML = '';
   $('#devTitle').textContent = `Ferramentas — ${devSiteNow().name}`; $('#devShort').innerHTML = ''; $('#devTabScripts').innerHTML = '<div class="muted small">Carregando…</div>'; $('#devTabEnv').innerHTML = '';
   devTabShow(); $('#devDlg').showModal();
   try { DEV.info = await api('GET', '/api/dev/info?id=' + encodeURIComponent(id)); } catch (_) { $('#devDlg').close(); return; }
   renderDev();
+  if (DEV.tab === 'Plano') await loadPlan();
 }
 function renderDev() {
   const i = DEV.info; if (!i) return;
@@ -361,6 +363,55 @@ function renderDevEnv() {
     + `<div class="muted small">Valores sensíveis (senha, chave, token) nunca aparecem aqui. Antes de cada alteração o RDR Local guarda o <code>.env</code> atual em <code>.env.backup</code>.</div>${miss}`
     + `<h4 style="margin:14px 0 4px">Variáveis do .env</h4><input id="devFilter" placeholder="Filtrar…" style="width:100%;margin:4px 0 6px"><table><tbody>${rows}</tbody></table>`;
 }
+// ---------- plano do projeto (especificação, tarefas e diário) ----------
+const PLAN = { data: null, sub: 'Tarefas', spec: null, ov: null };
+const PLAN_STATES = [[' ', 'A fazer'], ['~', 'Em andamento'], ['x', 'Feito'], ['-', 'Não será feito']];
+async function loadPlan() {
+  const box = $('#devTabPlano'); box.innerHTML = '<div class="muted small">Carregando…</div>';
+  try { PLAN.data = await api('GET', '/api/plan?id=' + encodeURIComponent(DEV.id), null, true); } catch (e) { box.innerHTML = `<div class="muted">${esc(e.message)}</div>`; return; }
+  renderPlan();
+}
+function planTasksHtml(p) {
+  const rows = p.phases.map((ph) => `<h4 style="margin:12px 0 4px">${esc(ph.name)} <span class="muted small">${ph.done}/${ph.total}</span></h4>`
+    + (ph.tasks.length ? ph.tasks.map((t) => `<div class="proc-r" style="gap:8px"><select class="plan-st" data-line="${t.line}" data-text="${esc(t.text)}" style="width:150px">${PLAN_STATES.map(([v, l]) => `<option value="${v}" ${t.state === v ? 'selected' : ''}>${l}</option>`).join('')}</select><div style="flex:1;min-width:0;overflow-wrap:anywhere" class="${t.state === 'x' || t.state === '-' ? 'muted' : ''}">${t.state === 'x' ? '<s>' + esc(t.text) + '</s>' : esc(t.text)}</div></div>`).join('') : '<div class="muted small">Sem tarefas nesta fase.</div>')).join('');
+  const opts = p.phases.map((ph) => `<option value="${esc(ph.name)}">${esc(ph.name)}</option>`).join('') + '<option value="__new">+ Nova fase…</option>';
+  return (rows || '<div class="muted small">O arquivo de tarefas ainda não tem fases (títulos <code>##</code>).</div>') + `<div class="row" style="gap:6px;margin-top:12px"><select id="planPhase" style="max-width:230px">${opts}</select><input id="planNewTask" placeholder="Nova tarefa…" style="flex:1"><button class="sm" data-a="planAddTask">Adicionar</button></div>`;
+}
+function planDiaryHtml(p) {
+  const ents = [...p.diary].reverse().map((e) => `<h4 style="margin:12px 0 4px">${esc(e.date)}</h4>` + e.items.map((i) => `<div style="padding:2px 0;overflow-wrap:anywhere"><span class="muted small">${esc(i.time)}</span> ${esc(i.text)}</div>`).join('')).join('');
+  return `<textarea id="planDiaryText" rows="3" placeholder="O que foi feito, onde parou, próximo passo…" style="width:100%"></textarea><div class="row end" style="margin-top:6px"><button class="sm" data-a="planAddDiary">Registrar no diário</button></div>${ents || '<div class="muted small" style="margin-top:8px">Nenhuma anotação ainda.</div>'}`;
+}
+function renderPlan() {
+  const p = PLAN.data; const box = $('#devTabPlano'); if (!p) return;
+  if (!p.enabled) { box.innerHTML = '<div class="empty">Este projeto ainda não tem plano.<br><span class="muted small">O plano são três arquivos em <code>docs/</code> (especificação, tarefas e diário) que você e o agente de IA mantêm; o RDR Local mostra o andamento no Painel. Também acrescenta a regra de fluxo ao <code>CLAUDE.md</code> e ao <code>AGENTS.md</code> (cria os que não existirem).</span><br><button class="sm" data-a="planInit" style="margin-top:10px">Ativar plano</button></div>'; return; }
+  const g = p.progress;
+  const head = `<div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><b>${g.done} de ${g.total} tarefas (${g.pct}%)</b><span class="muted small">${p.complete ? 'Tudo concluído' : p.current ? 'Fase atual: ' + esc(p.current) : ''}</span></div><div class="bar prog" style="margin:6px 0 10px"><i style="width:${g.pct}%"></i></div>${p.doing.length ? `<div class="small" style="margin-bottom:8px"><b>Em andamento:</b> ${p.doing.map((d) => esc(d.text)).join(' · ')}</div>` : ''}`;
+  const sub = ['Tarefas', 'Diário', 'Especificação'].map((s) => `<button class="${PLAN.sub === s ? '' : 'sec'} sm" data-a="planSub" data-sub="${s}">${s}</button>`).join('');
+  let body;
+  if (PLAN.sub === 'Tarefas') body = planTasksHtml(p);
+  else if (PLAN.sub === 'Diário') body = planDiaryHtml(p);
+  else body = PLAN.spec === null ? '<div class="muted small">Carregando…</div>' : `<div class="muted small" style="margin-bottom:4px">${esc(PLAN.spec.name)} (somente leitura: edite no editor ou peça ao agente)</div><pre style="white-space:pre-wrap;max-height:380px;overflow:auto;margin:0">${esc(PLAN.spec.text)}</pre>`;
+  box.innerHTML = head + `<div class="row" style="gap:6px;margin:6px 0 8px">${sub}</div>` + body;
+}
+async function loadPlanOverview() { try { PLAN.ov = (await api('GET', '/api/plan/overview', null, true)).projects; } catch (_) { return; } renderPlanCard(); }
+function renderPlanCard() {
+  const card = $('#planCard'); if (!card || !S) return;
+  const list = PLAN.ov || [];
+  card.hidden = !list.length && !S.sites.some((s) => s.path);
+  if (card.hidden) return;
+  $('#planList').innerHTML = list.length ? list.map((p) => {
+    const g = p.progress; const d = p.diary;
+    return `<div class="plan-row" data-a="planOpen" data-id="${esc(p.id)}" title="Abrir o plano"><div class="plan-top"><b>${esc(p.name)}</b><span class="muted small">${g.done}/${g.total} · ${g.pct}%${p.complete ? ' · concluído' : ''}</span></div><div class="bar prog"><i style="width:${g.pct}%"></i></div>`
+      + `<div class="muted small">${p.phase ? 'Fase: ' + esc(p.phase) : p.complete ? 'Todas as tarefas concluídas' : 'Sem tarefas'}${p.doing.length ? ' · <b>Em andamento:</b> ' + p.doing.map((x) => esc(x.text)).join('; ') : ''}</div>`
+      + `${d ? `<div class="muted small">Diário (${esc(d.date.slice(0, 5))}${d.time ? ' ' + esc(d.time) : ''}): ${esc(d.text.length > 140 ? d.text.slice(0, 140) + '…' : d.text)}</div>` : ''}</div>`;
+  }).join('') : '<div class="muted small">Nenhum projeto com plano ainda. Abra as <b>Ferramentas</b> de um site (ícone de ajustes) → <b>Plano</b> → <b>Ativar plano</b>.</div>';
+}
+setInterval(() => { if (page === 'painel') loadPlanOverview(); }, 10000);
+$('#devTabPlano').addEventListener('change', async (ev) => { // trocar o estado de uma tarefa
+  const el = ev.target; if (!el.classList || !el.classList.contains('plan-st')) return;
+  try { await api('POST', '/api/plan/task', { id: DEV.id, line: Number(el.dataset.line), expect: el.dataset.text, state: el.value }); } catch (_) { /* o aviso já foi mostrado */ }
+  await loadPlan(); loadPlanOverview();
+});
 async function loadLog() {
   const sel = $('#logSel');
   if (!sel.options.length && S) {
@@ -486,7 +537,22 @@ document.addEventListener('click', async (e) => {
       break;
     }
     case 'dev': await devOpen(id); break;
-    case 'devTab': DEV.tab = t.dataset.tab; devTabShow(); if (DEV.tab === 'Env' && !DEV.env) await loadDevEnv(); break;
+    case 'devTab': DEV.tab = t.dataset.tab; devTabShow(); if (DEV.tab === 'Env' && !DEV.env) await loadDevEnv(); if (DEV.tab === 'Plano' && !PLAN.data) await loadPlan(); break;
+    case 'planOpen': await devOpen(id, 'Plano'); break;
+    case 'planInit': {
+      if (!(await ui.confirm({ title: 'Ativar plano', okText: 'Ativar', html: 'Vai criar em <code>docs/</code> a especificação, as tarefas e o diário (se ainda não existirem) e acrescentar a seção <b>Fluxo de trabalho</b> ao <code>CLAUDE.md</code> e ao <code>AGENTS.md</code> (os que não existirem serão criados). Nada existente é sobrescrito.' }))) break;
+      const r = await api('POST', '/api/plan/init', { id: DEV.id }); ui.toast(`${r.created.length} item(ns) criado(s) ou atualizado(s)`); await loadPlan(); loadPlanOverview(); break;
+    }
+    case 'planSub':
+      PLAN.sub = t.dataset.sub;
+      if (PLAN.sub === 'Especificação' && PLAN.spec === null) { renderPlan(); try { PLAN.spec = await api('GET', '/api/plan/file?id=' + encodeURIComponent(DEV.id) + '&kind=spec', null, true); } catch (e) { PLAN.spec = { name: '(sem especificação)', text: e.message }; } }
+      renderPlan(); break;
+    case 'planAddTask': {
+      let phase = $('#planPhase').value; const text = $('#planNewTask').value;
+      if (phase === '__new') { const n = await ui.prompt({ title: 'Nova fase', label: 'Nome da fase', placeholder: 'Fase 2 — Cadastro', okText: 'Criar' }); if (!n) break; phase = n; }
+      await api('POST', '/api/plan/add-task', { id: DEV.id, phase, text }); await loadPlan(); loadPlanOverview(); break;
+    }
+    case 'planAddDiary': await api('POST', '/api/plan/diary', { id: DEV.id, text: $('#planDiaryText').value }); ui.toast('Anotação registrada'); await loadPlan(); loadPlanOverview(); break;
     case 'devOpen': await api('POST', '/api/dev/open', { id: DEV.id, what: t.dataset.what, editor: t.dataset.editor || '' }); ui.toast('Abrindo…'); break;
     case 'devGithub': window.open(t.dataset.url, '_blank', 'noopener'); break;
     case 'devRun': await api('POST', '/api/scripts/run', { id: DEV.id, kind: t.dataset.kind, name: t.dataset.name }); jobDismissed.clear(); $('#devDlg').close(); ui.toast('Executando… acompanhe no log da tarefa.'); break;
