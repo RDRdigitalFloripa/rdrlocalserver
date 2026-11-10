@@ -26,7 +26,7 @@ Um único processo Node (`server.js`, sem dependências npm) serve a interface e
 | `components.js` | Download/instalação de componentes, shims, `php.ini` base, consulta de versões |
 | `projects.js` | Criação de Laravel/WordPress/pasta PHP, `.env`, banco e migrate |
 | `db.js` | Listagem/criação/exclusão de bancos, backup/restauração, conexão |
-| `cloud.js` | Backup na nuvem via rclone: destinos, criptografia (crypt), envio (`copy`), retenção protegida, teste de restauração |
+| `cloud.js` | Backup na nuvem via rclone: destinos, criptografia (crypt), envio (`copy`), retenção protegida, teste de restauração; `quickDrive()` (Google Drive em um clique: instala o rclone, autoriza, define o destino, criptografa e testa) e `cancel()` (encerra o rclone em andamento) |
 | `notify.js` / `secrets.js` | Avisos (Telegram/webhook) e armazenamento de segredos em `config/secrets.json` (restrito ao usuário) |
 | `backup.js` | Agendador (tick de 60 s), retenção, execução de backup de todos os bancos |
 | `runtimes.js` | Node.js/Python/Go/Java gerenciados: versões disponíveis (nodejs.org, python-build-standalone), instalar, padrão, remover, PATH por projeto |

@@ -95,6 +95,7 @@ function renderAll() {
   if (page === 'bancos') renderConn();
   if (page === 'terminal') syncTerminalSites();
   if (page === 'painel') renderPlanCard();
+  if (page === 'nuvem') renderCloudQuick();
 }
 
 function renderSide() {
@@ -1069,7 +1070,7 @@ async function loadCloud(fill) {
   $('#clRemotes').innerHTML = !CL.installed ? '<div class="empty">Instale o rclone para adicionar destinos.</div>' : CL.remotes.length
     ? '<table><tbody>' + CL.remotes.map((r) => `<tr><td><b>${esc(r.name)}</b> <span class="muted small">${esc(r.label)}</span></td><td>${c.remote === r.name ? '<span class="chip on">em uso</span>' : ''}</td><td style="text-align:right"><button class="bad sm" data-a="clRemove" data-name="${esc(r.name)}">Remover</button></td></tr>`).join('') + '</tbody></table>'
     : '<div class="empty">Nenhum destino ainda. Clique em “Adicionar destino”.</div>';
-  $('#clAdd').disabled = !CL.installed;
+  $('#clAdd').disabled = !CL.installed; renderCloudQuick();
   if (fill) {
     $('#clRemote').innerHTML = '<option value="">— escolha —</option>' + CL.remotes.map((r) => `<option value="${esc(r.name)}">${esc(r.name)} (${esc(r.label)})</option>`).join('');
     $('#clRemote').value = c.remote; $('#clPath').value = c.path; $('#clProjects').value = c.projects; $('#clRetain').value = c.retainDays || '';
@@ -1091,6 +1092,25 @@ function clPathHint() {
 }
 $('#clRemote').onchange = clPathHint;
 setInterval(() => { if (page === 'nuvem' && !$('#clDlg').open) loadCloud(false); }, 5000);
+// ---- Google Drive em um clique ----
+function renderCloudQuick() {
+  if (!$('#clQuick') || !CL) return;
+  const dr = (CL.remotes || []).filter((r) => r.type === 'drive');
+  const st = $('#clDriveState'); st.textContent = dr.length ? `conectado: ${dr.map((r) => r.name).join(', ')}` : 'não conectado'; st.className = 'chip ' + (dr.length ? 'on' : 'warn');
+  const job = S && S.jobs ? [...S.jobs].reverse().find((j) => j.status === 'running' && /^Conectar (Google Drive|destino)/.test(j.title)) : null;
+  const m = job ? /http:\/\/127\.0\.0\.1:53682\/auth[^\s"'<>]*/.exec(job.log.join('\n')) : null; // o endereço de autorização do próprio rclone, só na máquina local
+  $('#clqLink').hidden = !job; $('#clqCancel').hidden = !job; $('#clqGo').disabled = !!job;
+  if (job) $('#clqLink').innerHTML = m ? `<span><b>Autorize no navegador.</b> Se ele não abriu, <a href="${esc(m[0])}" target="_blank" rel="noopener">abra o link de autorização</a>. Você tem 5 minutos.</span>` : '<span>Preparando: instalando o rclone e abrindo a autorização. Acompanhe o log da tarefa.</span>';
+}
+$('#clqGo').onclick = act(async () => {
+  const folder = $('#clqPath').value.trim() || 'RDR-Local-Backup'; const pass = $('#clqPass').value;
+  if (pass && pass.length < 12) { ui.toast('A senha de criptografia precisa ter pelo menos 12 caracteres.', 'warn'); return; }
+  const go = await ui.confirm({ title: 'Conectar o Google Drive', okText: 'Conectar', html: `Vai ${CL && CL.installed ? '' : 'instalar o rclone, '}abrir o navegador para você <b>autorizar o Google Drive</b> (você tem 5 minutos), usar a pasta <b>${esc(folder)}</b> como destino e ligar o envio automático depois de cada backup agendado. ${pass ? 'A <b>criptografia</b> será ligada: anote a senha, sem ela o backup é irrecuperável.' : '<b>Sem criptografia.</b> Recomendo uma senha: dump de banco tem dados de clientes.'} Continuar?` });
+  if (!go) return;
+  await api('POST', '/api/cloud/drive', { name: $('#clqName').value.trim(), path: folder, passphrase: pass, clientId: $('#clqId').value.trim(), clientSecret: $('#clqSecret').value });
+  $('#clqPass').value = ''; jobDismissed.clear(); ui.toast('Siga a autorização no navegador; o andamento está no log da tarefa.');
+});
+$('#clqCancel').onclick = act(async () => { await api('POST', '/api/cloud/cancel', {}); ui.toast('Autorização cancelada.'); });
 $('#clInstall').onclick = act(async () => { await api('POST', '/api/install', { id: 'rclone' }); jobDismissed.clear(); setTimeout(() => loadCloud(true), 8000); });
 function clKindFields() {
   const k = $('#clKind').value;

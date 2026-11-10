@@ -14,7 +14,7 @@ Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Larav
 - **Plano do projeto**: especificação, tarefas e diário em `docs/`, editados por você e por agentes de IA, com o andamento no Painel (desenvolvimento guiado por especificação).
 - **Ferramentas do projeto**: scripts do Composer/npm com um clique, auditoria de segurança, `.env` × `.env.example` e atalhos (editor, GitHub, Claude Code).
 - **Atualizações**: componentes, linguagens, Composer, phpMyAdmin e o próprio RDR Local (instalador conferido por SHA-256), com verificação automática e selo no menu.
-- **Backup**: bancos agendados, envio para Google Drive/Dropbox/S3/pasta com rclone, criptografia opcional e teste de restauração.
+- **Backup**: bancos agendados, envio para Google Drive (em um clique)/Dropbox/S3/pasta com rclone, criptografia opcional e teste de restauração.
 - **GitHub**: login por Device Flow ou token fine-grained, clonar para um site, estado do Git e atualização segura (`pull --ff-only`).
 - **Importar**: sites e bancos de ServBay, Laragon, XAMPP ou de outro MySQL/MariaDB local, com prévia e conferência.
 - **Publicar**: servidores SSH (chave + impressão digital), receitas para Docker Swarm com imagens do GHCR, verificação do build no GitHub Actions e publicação de sites antigos por FTP/FTPS/SFTP com prévia e `.env` nunca enviado.

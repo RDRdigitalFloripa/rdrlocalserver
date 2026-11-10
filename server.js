@@ -353,6 +353,12 @@ const routes = {
   'GET /api/cloud': async () => ({ ...(await cloud.summary()), notify: { onFail: cfg.notify.onFail, onOk: cfg.notify.onOk, telegramChatId: cfg.notify.telegramChatId, telegram: !!secrets.get('telegramToken'), webhook: !!secrets.get('webhookUrl') } }),
   'POST /api/cloud/connect': async (b) => { startJob(`Conectar destino ${String(b.name || '').slice(0, 31)}`, (jl) => cloud.connect(b, jl), 'cloud'); return ok(); },
   'POST /api/cloud/remove': async (b) => { await cloud.removeRemote(b.name); return ok(); },
+  // Google Drive em um clique: instala o rclone se faltar, autoriza no navegador, define o destino e (opcional) criptografa
+  'POST /api/cloud/drive': async (b) => {
+    const d = cloud.driveOpts(b); // recusa na hora (400), antes de instalar ou abrir o navegador
+    startJob('Conectar Google Drive', (jl) => cloud.quickDrive({ name: d.name, path: d.folder, passphrase: d.pass, enable: d.enable, clientId: d.clientId, clientSecret: d.clientSecret }, jl), 'cloud'); return ok();
+  },
+  'POST /api/cloud/cancel': async () => ({ ok: true, cancelled: cloud.cancel() }),
   'POST /api/cloud/settings': async (b) => { await cloud.setSettings(b); return ok(); },
   'POST /api/cloud/encryption': async (b) => { if (b.disable) await cloud.disableEncryption(); else await cloud.enableEncryption(b.passphrase); return ok(); },
   'POST /api/cloud/test': async () => { startJob('Testar destino na nuvem', (jl) => cloud.test(jl), 'cloud'); return ok(); },

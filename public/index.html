@@ -107,6 +107,25 @@
   <!-- BACKUP NA NUVEM -->
   <section id="p-nuvem" class="page">
     <div class="topbar"><h1>Backup na nuvem</h1></div>
+    <div class="card" id="clQuick">
+      <div class="card-h"><h2>Google Drive em um clique</h2><span id="clDriveState" class="chip"></span></div>
+      <p class="muted small" style="margin:0 0 10px">Instala o rclone sozinho (se faltar), abre o navegador para você autorizar o Google Drive e já deixa o envio automático ligado depois de cada backup agendado. O acesso é só aos arquivos que o próprio RDR Local cria, <b>nunca ao seu Drive inteiro</b>.</p>
+      <div class="form">
+        <label>Pasta no Drive<input id="clqPath" value="RDR-Local-Backup" autocomplete="off" spellcheck="false"></label>
+        <label>Senha de criptografia (recomendado)<input id="clqPass" type="password" autocomplete="new-password" placeholder="mín. 12 caracteres (opcional)"></label>
+      </div>
+      <details style="margin-top:8px"><summary class="muted small" style="cursor:pointer">Avançado: nome do destino e Client ID próprio</summary>
+        <div class="form" style="margin-top:8px">
+          <label>Nome do destino<input id="clqName" value="google-drive" autocomplete="off" spellcheck="false"></label>
+          <label>Client ID (recomendado)<input id="clqId" autocomplete="off" spellcheck="false"></label>
+          <label>Client Secret<input id="clqSecret" type="password" autocomplete="off"></label>
+          <p class="muted small full" style="margin:0">Sem Client ID próprio o Google limita a velocidade e, se o app OAuth ficar em modo "Teste", a autorização expira em 7 dias. O passo a passo está no guia <i>Backup na nuvem</i>, na Ajuda.</p>
+        </div>
+      </details>
+      <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center"><button id="clqGo">Conectar Google Drive</button><button class="sec" id="clqCancel" hidden>Cancelar a autorização</button></div>
+      <div id="clqLink" class="banner info" hidden style="margin-top:10px"></div>
+      <p class="muted small" style="margin:10px 0 0">Depois de conectar: <b>Enviar agora</b> e <b>Testar restauração</b> (mais abaixo). A senha de criptografia não é guardada em texto: <b>anote-a</b>, sem ela o backup é irrecuperável.</p>
+    </div>
     <div class="card">
       <div class="card-h"><h2>1. Ferramenta de envio (rclone)</h2><span id="clState" class="chip"></span></div>
       <p class="muted small" style="margin:0 0 10px">O RDR Local usa o <b>rclone</b> (open source) para enviar os backups ao Google Drive, Dropbox, S3/R2/B2 ou a uma pasta. O download é conferido por SHA-256.</p>
