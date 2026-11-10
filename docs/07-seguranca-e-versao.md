@@ -11,6 +11,7 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 - Caddy bloqueia `/.env`, `/.git` e `/storage/logs` em todos os sites, e também `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` quando esses arquivos existem na pasta pública.
 - A atualização do próprio RDR Local só baixa de `github.com/…/releases/download` e só abre o instalador se o SHA-256 conferir.
 - O `rdr.json` aplica só campos validados e não executa scripts. O comando de um app (`app.cmd`) exige confirmação (`--yes` no `rdr up`), e *Gerar rdr.json* não exporta variáveis de ambiente.
+- *Ferramentas do projeto*: só roda script que existe no `composer.json`/`package.json` (nome validado); a API do `.env` nunca devolve valores sensíveis; o `.env` é copiado para `.env.backup` antes de cada alteração; o link do GitHub nunca leva o usuário/token da URL do remoto. **Um script é código do projeto: rode só em projetos em que você confia.**
 - MCP não tem ferramentas destrutivas; terminal só com liberação explícita.
 - Restaurar e excluir banco sempre salvam backup antes.
 - Publicar: só roda comandos de receitas que você cadastrou; chaves SSH e senhas FTP ficam cifradas (DPAPI); a impressão digital do servidor é confirmada por você e depois exigida; `.env` nunca é enviado por FTP/SFTP; nada é apagado no servidor sem confirmação.
@@ -34,7 +35,7 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 
 ## Versão
 
-**RDR Local Server v1.10.0** — desenvolvido por RDR Digital.
+**RDR Local Server v1.11.0** — desenvolvido por RDR Digital.
 
 Novidades da 1.3: **Backup na nuvem** (Google Drive, Dropbox, S3/R2/B2, pasta ou disco) com rclone, criptografia opcional, teste de restauração, retenção protegida e avisos de falha por Telegram/webhook. Veja o guia *Backup na nuvem*.
 
@@ -46,7 +47,7 @@ Novidades da 1.6: **Importar bancos de outro servidor** (MySQL/MariaDB ligado ne
 
 Novidades da 1.7: **Publicar** — servidores SSH, chaves, impressão digital, receitas Docker Swarm (imagens do GHCR) e verificação do build no GitHub Actions. Veja o guia *Publicar*.
 
-Novidades da 1.8: publicação de sites antigos por **FTP, FTPS e SFTP** com prévia e envio incremental. 1.8.1: endereço `https://rdr-local-server.local` para o painel. 1.8.2: versão correta na imagem do instalador. 1.8.3: documentação atualizada. 1.9.0: botão **Reverter** nas receitas de Publicar. 1.9.1: criar app instala a linguagem que faltar. 1.9.2: botão "Instalar versão LTS" por linguagem. 1.10.0: projetos novos com `CLAUDE.md`, `AGENTS.md` e `docs/`; atualização do próprio RDR Local pelo painel (instalador conferido por SHA-256); verificação automática de atualizações com selo no menu; Composer e phpMyAdmin na lista de atualizações.
+Novidades da 1.8: publicação de sites antigos por **FTP, FTPS e SFTP** com prévia e envio incremental. 1.8.1: endereço `https://rdr-local-server.local` para o painel. 1.8.2: versão correta na imagem do instalador. 1.8.3: documentação atualizada. 1.9.0: botão **Reverter** nas receitas de Publicar. 1.9.1: criar app instala a linguagem que faltar. 1.9.2: botão "Instalar versão LTS" por linguagem. 1.10.0: projetos novos com `CLAUDE.md`, `AGENTS.md` e `docs/`; atualização do próprio RDR Local pelo painel (instalador conferido por SHA-256); verificação automática de atualizações com selo no menu; Composer e phpMyAdmin na lista de atualizações. 1.11.0: ferramentas do projeto (scripts, auditoria de segurança, `.env` × `.env.example` e atalhos).
 
 Novidades da 1.2: runtimes gerenciados de **Go** e **Java (JDK Temurin)** com SHA-256, modelos TypeScript (Express), Vite+React+TS, Next.js, Go e Spring Boot, versão dinâmica no painel, medidores de CPU/memória/disco desenhados na hora e diagnóstico de *quem atende as portas 80/443/53* (detecta ServBay/XAMPP ou outra cópia do RDR Local).
 

@@ -1,6 +1,6 @@
 # PRD — Product Requirements Document
 
-**Produto:** RDR Local Server · **Versão:** 1.10.0 · **Responsável:** RDR Digital
+**Produto:** RDR Local Server · **Versão:** 1.11.0 · **Responsável:** RDR Digital
 
 ## 1. Contexto e problema
 
@@ -63,6 +63,8 @@ Hospedagem real (o RDR Local não serve produção; apenas **publica** para ela 
 | RF-34 | Projetos novos (Laravel, WordPress, pasta PHP e apps) nascem com `CLAUDE.md`, `AGENTS.md` (respostas em português do Brasil) e pasta `docs/` com documentos no padrão `NN-DD-MM-AAAA-nome.md`; nunca sobrescreve; desligável; o Caddy não serve esses arquivos | Média |
 | RF-35 | Atualizar o próprio RDR Local pelo painel: última release do GitHub, download do instalador, conferência do SHA-256 e abertura do assistente | Média |
 | RF-36 | Verificação automática de atualizações (a cada 6 h, desligável) com selo no menu; inclui Composer e phpMyAdmin | Média |
+| RF-37 | `rdr.json`: configuração do projeto no repositório (domínio, PHP, banco, serviços), gerada a partir de um site ou aplicada com prévia; comando `rdr up` | Alta |
+| RF-38 | Ferramentas do projeto: scripts do Composer e do npm, auditoria de segurança (`composer audit` e `npm audit`), comparação e edição do `.env` com o `.env.example` e atalhos (editor, GitHub, Claude Code) | Média |
 
 ## 5. Requisitos não funcionais
 

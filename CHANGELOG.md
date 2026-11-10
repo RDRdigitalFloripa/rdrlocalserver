@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.0
+- **Ferramentas do projeto** (novo ícone de ajustes na linha de cada site com pasta):
+  - **Scripts:** lista os scripts do `composer.json` e do `package.json` e roda cada um com um clique, com o PHP e o Node do site, e a saída no log da tarefa. Só roda scripts que existem no arquivo; eventos do Composer e ciclos de vida do npm não viram botão; scripts que não terminam (`dev`, `watch`, `serve`) são marcados e não rodam aqui; limite de 10 minutos.
+  - **Auditoria de segurança:** `composer audit --locked` e `npm audit --omit=dev`. Achados terminam a tarefa em erro; auditoria que não conseguiu rodar termina como "incompleta", nunca como "sem achados".
+  - **.env:** compara com o `.env.example` (faltando, só no .env, para preencher), adiciona as faltantes, edita uma variável e cria o `.env` a partir do exemplo. Valores sensíveis nunca voltam pela API. Guarda `.env.backup` antes de cada alteração e preserva LF/CRLF.
+  - **Atalhos:** abrir no VS Code, Cursor ou PhpStorm, link do repositório no GitHub (sem usuário/token da URL) e terminal com o Claude Code na pasta do projeto.
+  - Guia em `docs/15-ferramentas-do-projeto.md`.
+
 ## 1.10.0
 - Projetos novos (Laravel, WordPress, pasta PHP e apps criados a partir de modelo ou em pasta nova) já nascem com `CLAUDE.md`, `AGENTS.md` e a pasta `docs/`. Os dois arquivos trazem a regra "Sempre forneça as respostas em português do Brasil", a orientação do padrão de nome dos documentos (`NN-DD-MM-AAAA-nome.md`, ex.: `01-10-10-2026-arquivo.md`) e os dados do ambiente local (endereço, banco, e-mail de teste). A `docs/` recebe `01-DD-MM-AAAA-visao-geral.md`. Nunca sobrescreve arquivo existente; não mexe em clonados, importados nem em "pasta que já tem um app". Desligável em Configurações.
 - O Caddy não serve `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` quando esses arquivos existem na pasta pública (WordPress, pasta PHP, túnel público). Rotas de aplicação com esses caminhos (ex.: `/docs` do Laravel) continuam funcionando.

@@ -1,6 +1,6 @@
 # SDD — Software Design Document
 
-**Produto:** RDR Local Server v1.10.0
+**Produto:** RDR Local Server v1.11.0
 
 ## 1. Visão geral da arquitetura
 
@@ -45,6 +45,9 @@ Um único processo Node (`server.js`, sem dependências npm) serve a interface e
 | `appupdate.js` | Atualização do próprio RDR Local: última release do GitHub, download, SHA-256 e abertura do instalador |
 | `aifiles.js` | `CLAUDE.md`, `AGENTS.md` e `docs/` em projetos novos (nunca sobrescreve; desligável) |
 | `rdrfile.js` | `rdr.json` do projeto: valida (`plan`), aplica (`apply`: serviços, banco, `.env`, site) e gera a partir de um site (`exportSite`) |
+| `scripts.js` | Scripts do `composer.json`/`package.json` (lista, valida e roda com timeout) e auditoria (`composer audit --locked`, `npm audit --omit=dev`) |
+| `envfile.js` | `.env` × `.env.example`: comparar, criar, adicionar faltantes e editar uma chave; nunca devolve valor sensível; `.env.backup` antes de gravar |
+| `devtools.js` | Editores instalados, link do `origin` (do `.git/config`), terminal com `claude` e `launch()` (abre programa com argumentos sem passar a pasta por shell) |
 | `sysinfo.js` | Métricas de CPU, memória e disco |
 
 Fora de `lib/`: `rdr.js` (CLI), `mcp.js` (servidor MCP stdio), `start.bat` (modo desenvolvimento) e `start-silent.vbs` (gerado em execução).
@@ -113,6 +116,8 @@ Persistência em `config/config.json` (texto puro). Campos principais:
 **Projeto novo:** ao final da criação (Laravel, WordPress, pasta PHP: `projects.js`; app em pasta nova ou de modelo: `POST /api/apps/new`), `aifiles.scaffold()` grava `CLAUDE.md` e `AGENTS.md` (mesmo texto) e, se a `docs/` estiver vazia, `docs/01-DD-MM-AAAA-visao-geral.md`. Roda **depois** de `composer create-project`, do modelo e do `unzip` do Spring (que recria a pasta), nunca sobrescreve e não derruba a criação se falhar (só registra no log). Não roda em clonagem do GitHub, importação nem "pasta que já tem um app", para não sujar a árvore do Git (o `pull --ff-only` recusa árvore suja). Nos sites PHP o Caddy responde 404 a `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` só quando o arquivo existe na pasta pública (`file` matcher), para não quebrar rotas como `/docs` do Laravel.
 
 **Aplicar rdr.json:** `rdrfile.plan()` lê e valida o arquivo (limite de 50 KB, campos conhecidos, `sites.clean()` para domínio, aliases, PHP, env e porta) e devolve os passos, avisos e erros sem tocar em nada. `apply()` (tarefa `rdrfile`) liga os serviços instalados, cria o banco se `db.list()` não o tiver, cria ou atualiza o site daquela pasta (`cfg.sites` por `path`, então repetir não duplica), ajusta o `.env` existente com `projects.patchEnv` e, em `type: "app"`, inicia o app. O `app.cmd` só roda com `confirmCmd` (UI: confirmação; CLI `rdr up`: `--yes`). `exportSite()` deduz banco, Redis e Mailpit do `.env` mas não grava `env` nem valores do `.env`. O Caddy não serve `/rdr.json` quando existe na pasta pública.
+
+**Ferramentas do projeto:** `GET /api/dev/info` devolve editores, link do repositório, `claude`, scripts e o resumo do `.env`. `scripts.resolve()` só aceita nome que **existe** no arquivo e passa em `NAME_RE` (`^[A-Za-z0-9][A-Za-z0-9:_.-]{0,63}$`), exclui eventos do Composer e ciclos de vida do npm e recusa scripts que não terminam (heurística `LONG_RE`); `POST /api/scripts/run` responde 400 na hora e roda como tarefa `scripts:<site>` (uma por site), com limite de 10 min (`killTree`). A auditoria roda `composer audit --locked --format=json` e `npm audit --json --omit=dev`, interpreta o JSON e devolve `{found, state}`: achados e verificação falha terminam a tarefa em erro; só `skipped` (sem lock) conclui verde, dizendo que nada foi auditado. `envfile.js` mascara chaves que casam `SECRET_RE` (nunca saem na API), troca só a primeira linha da chave (comentários não contam), copia o valor do exemplo cru ao adicionar faltantes e preserva LF/CRLF. `devtools.launch()` entrega o executável e os argumentos ao PowerShell por variáveis de ambiente (uma pasta com `&` ou espaço não vira comando) e dobra a barra invertida final; não usa `detached`, com o qual o PowerShell sai sem abrir o programa.
 
 **Atualizar o RDR Local:** `updates.check()` consulta `releases/latest` do repositório (`appupdate.REPO`); 404 = sem release/privado = "em dia". `POST /api/updates/app` (tarefa) baixa `RDR-Local-Setup-<versão>.exe` e o `.sha256` da mesma release, aceita só URLs `https://github.com/<repo>/releases/download/…`, compara o SHA-256 e abre o instalador com `cmd /c start` (UAC se preciso). Não instala em silêncio; o instalador encerra o programa antigo (`stop.ps1`) e mantém os dados. O instalador ainda não tem assinatura digital: o SmartScreen pode avisar. Exige repositório público (a consulta não usa token).
 

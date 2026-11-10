@@ -34,6 +34,9 @@ const updates = require('./lib/updates');
 const appupdate = require('./lib/appupdate');
 const aifiles = require('./lib/aifiles');
 const rdrfile = require('./lib/rdrfile');
+const scripts = require('./lib/scripts');
+const envfile = require('./lib/envfile');
+const devtools = require('./lib/devtools');
 const procs = require('./lib/procs');
 const doctor = require('./lib/doctor');
 const term = require('./lib/term');
@@ -79,6 +82,13 @@ const rdrDir = (b) => {
   if (b.id) { const s = cfg.sites.find((x) => x.id === String(b.id)); if (!s || !s.path) throw new Error('Site não encontrado ou sem pasta.'); return s.path; }
   const p = String(b.path || '').trim(); if (!p || !isDir(p)) throw new Error('Pasta não encontrada: ' + p);
   return path.resolve(p);
+};
+/** Site com pasta (PHP ou app) pelo id, para as ferramentas do projeto. */
+const devSite = (id) => {
+  const s = cfg.sites.find((x) => x.id === String(id || ''));
+  if (!s || !s.path || !['php', 'app', undefined].includes(s.type)) throw new Error('Site não encontrado ou sem pasta de projeto.');
+  if (!isDir(s.path)) throw new Error('A pasta do projeto não existe: ' + s.path);
+  return s;
 };
 const routes = {
   'GET /api/state': async () => state(),
@@ -255,6 +265,19 @@ const routes = {
     startJob(`Aplicar rdr.json: ${p.name}`, (jl) => rdrfile.apply(dir, { confirmCmd: !!b.confirmCmd }, jl), 'rdrfile'); return ok();
   },
   'POST /api/rdrfile/export': async (b) => { const r = rdrfile.exportSite(String(b.id || ''), { overwrite: !!b.overwrite }); return { ok: true, file: r.file, spec: r.spec }; },
+  // ----- ferramentas do projeto: atalhos, scripts, auditoria e .env -----
+  'GET /api/dev/info': async (_, q) => { const s = devSite(q.get('id')); return { ...devtools.info(s), scripts: scripts.list(s), env: envfile.summary(s) }; },
+  'POST /api/dev/open': async (b) => { devtools.open(devSite(b.id), String(b.what || ''), String(b.editor || '')); return ok(); },
+  'POST /api/scripts/run': async (b) => {
+    const s = devSite(b.id); const kind = String(b.kind || ''); const name = String(b.name || '');
+    scripts.resolve(s, kind, name); // recusa na hora (400) script que não existe ou que não termina
+    startJob(`Script ${kind} ${name} — ${s.name}`, (jl) => scripts.run(s, kind, name, jl), 'scripts:' + s.id); return ok();
+  },
+  'POST /api/scripts/audit': async (b) => { const s = devSite(b.id); startJob(`Auditoria de segurança — ${s.name}`, (jl) => scripts.audit(s, jl), 'scripts:' + s.id); return ok(); },
+  'GET /api/env': async (_, q) => envfile.compare(devSite(q.get('id'))),
+  'POST /api/env/set': async (b) => { envfile.set(devSite(b.id), String(b.key || ''), b.value === undefined || b.value === null ? '' : String(b.value)); return ok(); },
+  'POST /api/env/add-missing': async (b) => ({ ok: true, added: envfile.addMissing(devSite(b.id), Array.isArray(b.keys) ? b.keys.map(String).slice(0, 200) : null) }),
+  'POST /api/env/init': async (b) => { envfile.init(devSite(b.id)); return ok(); },
   'GET /api/import/sources': async () => ({ sources: importer.sources() }),
   'POST /api/import/scan': async (b) => ({ list: importer.scan({ kind: String(b.kind || ''), path: String(b.path || '') }) }),
   'GET /api/dbimport/ports': async () => ({ ports: await dbimport.detectPorts() }),

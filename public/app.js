@@ -8,6 +8,7 @@ const ICON = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>', term: '<path d="m5 7 5 5-5 5M12 18h7"/>', folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
   redo: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>', pkg: '<path d="M12 3 4 7v10l8 4 8-4V7zM4 7l8 4 8-4M12 11v10"/>',
   rdr: '<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12c-1 0-1 1-1 2s0 2 1 2M14 12c1 0 1 1 1 2s0 2-1 2"/>',
+  tools: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 4v6M9 14v6"/>',
   log: '<path d="M5 5h14M5 10h14M5 15h9"/>', proc: '<path d="M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01"/>', del: '<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',
 };
 const ic = (n) => `<svg viewBox="0 0 24 24">${ICON[n]}</svg>`;
@@ -162,7 +163,8 @@ function renderSites() {
         <button class="ib" title="Log do app" data-a="applog" data-id="${s.id}">${ic('proc')}</button>` : ''}
         ${net ? '' : `<button class="ib" title="Terminal do site (mini terminal)" data-a="term" data-id="${s.id}">${ic('term')}</button>
         <button class="ib" title="Abrir pasta" data-a="folder" data-id="${s.id}">${ic('folder')}</button>
-        <button class="ib ${s.caps && s.caps.rdr ? 'go' : ''}" title="${s.caps && s.caps.rdr ? 'Aplicar o rdr.json deste projeto' : 'Gerar o rdr.json (configuração do projeto no repositório)'}" data-a="rdr" data-id="${s.id}">${ic('rdr')}</button>`}
+        <button class="ib ${s.caps && s.caps.rdr ? 'go' : ''}" title="${s.caps && s.caps.rdr ? 'Aplicar o rdr.json deste projeto' : 'Gerar o rdr.json (configuração do projeto no repositório)'}" data-a="rdr" data-id="${s.id}">${ic('rdr')}</button>
+        <button class="ib" title="Ferramentas do projeto (scripts, auditoria de segurança, .env, editor)" data-a="dev" data-id="${s.id}">${ic('tools')}</button>`}
         <button class="ib ${Object.values(s.procs || {}).some(Boolean) ? 'go' : ''}" title="Processos (fila, agendador, Vite)" data-a="procs" data-id="${s.id}">${ic('proc')}</button>
         <button class="ib" title="Log de acesso" data-a="slog" data-id="${s.id}">${ic('log')}</button>
         <button class="ib del" title="Remover (não apaga a pasta)" data-a="del" data-id="${s.id}">${ic('del')}</button>
@@ -313,6 +315,52 @@ function renderProcs() {
       <button class="sec sm" data-a="artisan" data-cmd="composer-install">Composer install</button>
       <button class="bad sm" data-a="artisan" data-cmd="migrate-fresh">Migrate:fresh --seed</button></div>` : '') + (s.kind === 'Laravel' ? `<div class="proc-r"><div style="flex:1"><b>laravel.log</b><small class="muted" style="display:block">Último arquivo em storage/logs</small></div><button class="sec sm" data-a="laravelLog">Ver</button></div>` : '');
 }
+// ---------- ferramentas do projeto (atalhos, scripts, auditoria, .env) ----------
+const DEV = { id: '', info: null, env: null, tab: 'Scripts' };
+const devSiteNow = () => S.sites.find((x) => x.id === DEV.id);
+function devTabShow() {
+  ['Scripts', 'Env'].forEach((x) => { $('#devTab' + x).hidden = x !== DEV.tab; });
+  document.querySelectorAll('#devTabs [data-tab]').forEach((b) => b.classList.toggle('sec', b.dataset.tab !== DEV.tab));
+}
+async function devOpen(id) {
+  DEV.id = id; DEV.info = null; DEV.env = null; DEV.tab = 'Scripts';
+  $('#devTitle').textContent = `Ferramentas — ${devSiteNow().name}`; $('#devShort').innerHTML = ''; $('#devTabScripts').innerHTML = '<div class="muted small">Carregando…</div>'; $('#devTabEnv').innerHTML = '';
+  devTabShow(); $('#devDlg').showModal();
+  try { DEV.info = await api('GET', '/api/dev/info?id=' + encodeURIComponent(id)); } catch (_) { $('#devDlg').close(); return; }
+  renderDev();
+}
+function renderDev() {
+  const i = DEV.info; if (!i) return;
+  const sh = i.editors.map((e) => `<button class="sec sm" data-a="devOpen" data-what="editor" data-editor="${esc(e.id)}">Abrir no ${esc(e.label)}</button>`);
+  if (i.github) sh.push(`<button class="sec sm" data-a="devGithub" data-url="${esc(i.github)}">Repositório no GitHub</button>`);
+  if (i.claude) sh.push('<button class="sec sm" data-a="devOpen" data-what="claude" title="Abre uma janela de terminal na pasta do projeto já rodando o claude">Terminal com Claude Code</button>');
+  $('#devShort').innerHTML = sh.length ? sh.join('') : '<span class="muted small">Nenhum editor, repositório do GitHub ou Claude Code detectado neste projeto.</span>';
+  const sc = i.scripts;
+  const row = (kind, it) => `<div class="proc-r"><div style="flex:1;min-width:0"><b>${esc(it.name)}</b><small class="muted" style="display:block;overflow-wrap:anywhere">${esc(it.cmd)}</small></div>${it.long ? '<span class="chip" title="Fica rodando sem terminar: use Processos (Vite, fila) ou o Terminal do site">fica rodando</span>' : `<button class="sm" data-a="devRun" data-kind="${kind}" data-name="${esc(it.name)}">Executar</button>`}</div>`;
+  const grp = (title, kind, items, note) => (items.length ? `<h4 style="margin:14px 0 4px">${title}</h4>${note ? `<div class="muted small" style="margin-bottom:4px">${note}</div>` : ''}${items.map((x) => row(kind, x)).join('')}` : '');
+  const audit = (sc.hasComposer || sc.hasNpm) ? `<div class="proc-r"><div style="flex:1"><b>Auditoria de segurança</b><small class="muted" style="display:block">Procura vulnerabilidades conhecidas nas versões travadas (${[sc.hasComposer && 'composer.lock', sc.hasNpm && 'package-lock.json'].filter(Boolean).join(' e ')}). Usa a internet.</small></div><button class="sm" data-a="devAudit">Auditar</button></div>` : '';
+  $('#devTabScripts').innerHTML = (audit + grp('Composer', 'composer', sc.composer, 'Scripts do <code>composer.json</code>, com o PHP do site.') + grp(`npm (${esc(sc.manager)})`, 'npm', sc.npm, 'Scripts do <code>package.json</code>.')) || '<div class="empty">Este projeto não tem <code>composer.json</code> nem <code>package.json</code>.</div>';
+  if (audit && !sc.composer.length && !sc.npm.length) $('#devTabScripts').insertAdjacentHTML('beforeend', '<div class="muted small" style="margin-top:10px">O projeto não define scripts em <code>composer.json</code> ou <code>package.json</code>.</div>');
+}
+async function loadDevEnv() {
+  const box = $('#devTabEnv'); box.innerHTML = '<div class="muted small">Carregando…</div>';
+  try { DEV.env = await api('GET', '/api/env?id=' + encodeURIComponent(DEV.id), null, true); } catch (e) { box.innerHTML = `<div class="muted">${esc(e.message)}</div>`; return; }
+  renderDevEnv();
+}
+function renderDevEnv() {
+  const e = DEV.env; const box = $('#devTabEnv'); if (!e) return;
+  if (!e.hasEnv) { box.innerHTML = `<div class="empty">Este projeto não tem <code>.env</code>.${e.hasExample ? `<br><button class="sm" data-a="envInit" style="margin-top:8px">Criar a partir do ${esc(e.exampleName)}</button>` : ' Também não há <code>.env.example</code>.'}</div>`; return; }
+  const chips = [e.hasExample ? `<span class="chip ${e.missing.length ? 'warn' : 'on'}">${e.missing.length} faltando</span><span class="chip">${e.extra.length} só no .env</span>` : '<span class="chip">sem .env.example para comparar</span>', `<span class="chip ${e.empty.length ? 'warn' : 'on'}">${e.empty.length} para preencher</span>`].join(' ');
+  const miss = e.missing.length ? `<h4 style="margin:12px 0 4px">Faltando no .env (existem no ${esc(e.exampleName)})</h4>` + e.missing.map((m) => `<div class="proc-r" data-k="${esc(m.key)}"><div style="flex:1;min-width:0"><b>${esc(m.key)}</b><small class="muted" style="display:block;overflow-wrap:anywhere">exemplo: ${m.secret ? '(valor sensível não mostrado)' : esc(m.example) || '(vazio)'}</small></div><button class="sec sm" data-a="envAdd" data-key="${esc(m.key)}">Adicionar</button></div>`).join('') : '';
+  const rows = e.entries.map((x) => {
+    const tag = e.empty.includes(x.key) ? '<span class="chip warn">vazia</span>' : (e.hasExample && !x.inExample) ? '<span class="chip">só no .env</span>' : '';
+    const val = x.secret ? (x.set ? '••••••••' : '(vazio)') : (x.value === '' ? '(vazio)' : esc(x.value));
+    return `<tr data-k="${esc(x.key)}"><td style="white-space:nowrap"><b>${esc(x.key)}</b></td><td style="overflow-wrap:anywhere;max-width:340px" class="${x.secret ? 'muted' : ''}">${val}</td><td>${tag}</td><td style="text-align:right"><button class="sec sm" data-a="envEdit" data-key="${esc(x.key)}" data-secret="${x.secret ? 1 : 0}" data-val="${x.secret ? '' : esc(x.value)}">Editar</button></td></tr>`;
+  }).join('');
+  box.innerHTML = `<div class="row" style="gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">${chips}${e.missing.length ? '<button class="sm" data-a="envAddAll" style="margin-left:auto">Adicionar todas as faltantes</button>' : ''}</div>`
+    + `<div class="muted small">Valores sensíveis (senha, chave, token) nunca aparecem aqui. Antes de cada alteração o RDR Local guarda o <code>.env</code> atual em <code>.env.backup</code>.</div>${miss}`
+    + `<h4 style="margin:14px 0 4px">Variáveis do .env</h4><input id="devFilter" placeholder="Filtrar…" style="width:100%;margin:4px 0 6px"><table><tbody>${rows}</tbody></table>`;
+}
 async function loadLog() {
   const sel = $('#logSel');
   if (!sel.options.length && S) {
@@ -437,6 +485,21 @@ document.addEventListener('click', async (e) => {
       }
       break;
     }
+    case 'dev': await devOpen(id); break;
+    case 'devTab': DEV.tab = t.dataset.tab; devTabShow(); if (DEV.tab === 'Env' && !DEV.env) await loadDevEnv(); break;
+    case 'devOpen': await api('POST', '/api/dev/open', { id: DEV.id, what: t.dataset.what, editor: t.dataset.editor || '' }); ui.toast('Abrindo…'); break;
+    case 'devGithub': window.open(t.dataset.url, '_blank', 'noopener'); break;
+    case 'devRun': await api('POST', '/api/scripts/run', { id: DEV.id, kind: t.dataset.kind, name: t.dataset.name }); jobDismissed.clear(); $('#devDlg').close(); ui.toast('Executando… acompanhe no log da tarefa.'); break;
+    case 'devAudit': await api('POST', '/api/scripts/audit', { id: DEV.id }); jobDismissed.clear(); $('#devDlg').close(); ui.toast('Auditando… acompanhe no log da tarefa.'); break;
+    case 'envInit': await api('POST', '/api/env/init', { id: DEV.id }); ui.toast('.env criado a partir do exemplo'); await loadDevEnv(); break;
+    case 'envAddAll': { const r = await api('POST', '/api/env/add-missing', { id: DEV.id }); ui.toast(`${r.added.length} variável(is) adicionada(s)`); await loadDevEnv(); break; }
+    case 'envAdd': { const r = await api('POST', '/api/env/add-missing', { id: DEV.id, keys: [t.dataset.key] }); ui.toast(r.added.length ? `${t.dataset.key} adicionada` : 'Nada a adicionar'); await loadDevEnv(); break; }
+    case 'envEdit': {
+      const secret = t.dataset.secret === '1';
+      const v = await ui.prompt({ title: `Editar ${t.dataset.key}`, message: secret ? 'O valor atual não é mostrado. Digite o novo valor (em branco deixa a variável vazia).' : '', label: 'Valor', value: t.dataset.val || '', okText: 'Salvar' });
+      if (v === null || v === undefined) break;
+      await api('POST', '/api/env/set', { id: DEV.id, key: t.dataset.key, value: v }); ui.toast(`${t.dataset.key} salva`); await loadDevEnv(); break;
+    }
     case 'phpCfg': await phpOpen(id); break;
     case 'phpTab': phpTab(t.dataset.tab); break;
     case 'open': if (site) window.open(site.url, '_blank'); break;
@@ -540,6 +603,11 @@ $('#btnPhpInstall').onclick = act(async () => {
   await api('POST', '/api/install', { id: 'php', version: v });
 });
 $('#procClose').onclick = () => $('#procDlg').close();
+$('#devClose').onclick = () => $('#devDlg').close();
+$('#devTabEnv').addEventListener('input', (ev) => { // filtro da lista do .env (só esconde linhas)
+  if (ev.target.id !== 'devFilter') return;
+  const q = ev.target.value.toLowerCase(); document.querySelectorAll('#devTabEnv tr[data-k]').forEach((r) => { r.hidden = q && !r.dataset.k.toLowerCase().includes(q); });
+});
 $('#restoreCancel').onclick = () => $('#restoreDlg').close();
 $('#btnRestoreFile').onclick = () => { const f = $('#restoreForm'); window._rsEngine = $('#dbEngine').value; f.source.value = ''; f.target.value = ''; f.confirm.value = ''; $('#restoreDlg').showModal(); };
 $('#restoreForm').onsubmit = async (e) => {

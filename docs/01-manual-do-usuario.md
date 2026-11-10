@@ -1,6 +1,6 @@
 # Manual do usuário
 
-> RDR Local Server v1.10.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.11.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
@@ -55,6 +55,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 - **Liberar CORS** (para APIs).
 - Bloqueios automáticos: `/.env`, `/.git` e `/storage/logs`.
 - **rdr.json** (ícone na linha do site, ou `rdr up` no terminal): guarda domínio, PHP, banco e serviços **dentro do projeto**, no Git. Quem clona aplica o arquivo e ganha o mesmo ambiente. Veja o guia *rdr.json*.
+- **Ferramentas do projeto** (ícone de ajustes na linha do site): scripts do `composer.json` e do `package.json` com um clique, **auditoria de segurança** (`composer audit` e `npm audit`), comparação do `.env` com o `.env.example` e atalhos para o editor, o GitHub e o terminal com o Claude Code. Veja o guia *Ferramentas do projeto*.
 
 ### Processos do site
 Ícone de processos na linha do site: `queue:work`, `schedule:work`, `npm run dev` (Vite) e **Túnel público** (Cloudflared, link `https://*.trycloudflare.com`). Comandos rápidos: Migrate, Limpar caches, Storage link, Composer install, Migrate:fresh --seed.
