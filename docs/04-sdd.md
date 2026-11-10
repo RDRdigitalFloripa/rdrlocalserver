@@ -51,7 +51,7 @@ Um único processo Node (`server.js`, sem dependências npm) serve a interface e
 | `smtp.js` | Cliente SMTP mínimo (net/tls): DNS, conexão, SSL/TLS ou STARTTLS, AUTH PLAIN/LOGIN, envio de UM e-mail de teste; etapas com tempo e `explain()` (erro → mensagem e dica em português) |
 | `mail.js` | Perfil SMTP (`cfg.smtp` + senha em `secrets.json`), validação, limite de testes, teste com os valores do formulário e "usar no projeto" (`MAIL_*` no `.env` via `envfile.setMany`) |
 | `devtools.js` | Editores instalados, link do `origin` (do `.git/config`), terminal com `claude` e `launch()` (abre programa com argumentos sem passar a pasta por shell) |
-| `sysinfo.js` | Métricas de CPU, memória e disco |
+| `sysinfo.js` | Métricas de CPU, memória, disco e rede (Windows: `netstat -e`; Linux: `/proc/net/dev`); a rede só é amostrada enquanto o painel pergunta |
 
 Fora de `lib/`: `rdr.js` (CLI), `mcp.js` (servidor MCP stdio), `start.bat` (modo desenvolvimento) e `start-silent.vbs` (gerado em execução).
 
@@ -159,6 +159,8 @@ Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
 | Agendador interno (não tarefa do SO) | Simplicidade; roda quando o painel está aberto |
 
 ## 8. Testes e validação
+
+**Suíte automática** (`tests/`, só Node.js, sem dependências; guia em `TESTING.md` na raiz do repositório): `npm test` roda tudo isolado (pasta de dados temporária, porta livre, `hosts` falso e servidores SMTP falsos) e `npm run test:full` inclui o que usa a internet. O `.github/workflows/ci.yml` executa a suíte no Windows a cada push na `main` e a cada pull request. Cobre geração de `CLAUDE.md`/`AGENTS.md`, plano do projeto, `rdr.json`, painel e segurança da API, `.env`, scripts e auditoria, SMTP, página E-mail, Drive, Caddyfile e a consistência da versão da release.
 
 Validado em Linux (sandbox): Caddyfile com binário real do Caddy, php.ini com PHP real, DNS, túnel (cloudflared simulado), backups, CLI, MCP, exportar/importar e fluxo de atualizações (stubs), interface via Playwright.
 Publicar foi validado em Linux com sshd real, mock da API do Actions e servidor FTP/SFTP reais.

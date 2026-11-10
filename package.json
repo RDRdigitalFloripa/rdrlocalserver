@@ -9,5 +9,5 @@
   "repository": { "type": "git", "url": "git+https://github.com/RDRdigitalFloripa/rdrlocalserver.git" },
   "bugs": { "url": "https://github.com/RDRdigitalFloripa/rdrlocalserver/issues" },
   "engines": { "node": ">=18" },
-  "scripts": { "start": "node server.js", "build:installer": "bash installer/build.sh" }
+  "scripts": { "start": "node server.js", "test": "node tests/run.js", "test:full": "node tests/run.js --full", "build:installer": "bash installer/build.sh" }
 }

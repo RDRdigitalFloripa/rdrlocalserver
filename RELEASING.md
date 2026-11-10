@@ -9,7 +9,7 @@ A release é gerada pelo GitHub Actions (`.github/workflows/release.yml`). Ela �
    - `public/index.html` (rodapé `RDR LOCAL SERVER vX.Y.Z`);
    - `CHANGELOG.md`: nova seção `## X.Y.Z` com as novidades (o texto vira as notas da release);
    - cabeçalhos de versão dos documentos em `docs/`, `README.md` e `LEIA-ME.txt`.
-2. Faça o commit e envie para a `main`.
+2. Rode `npm test` (ou confira o fluxo **Testes** verde na `main`; veja `TESTING.md`), faça o commit e envie para a `main`.
 3. Crie e envie a tag, com o **mesmo número** do `package.json`:
 
    ```bash
@@ -44,5 +44,5 @@ O valor deve ser igual ao do arquivo `.sha256`. Em Linux/Git Bash: `sha256sum -c
 
 ## Limites atuais
 
-- O instalador **não tem assinatura digital**: o SmartScreen pode avisar. Assinar exige um certificado de assinatura de código (está no roadmap).
+- O instalador **não tem assinatura digital** e **não está planejado** assinar: o projeto é gratuito e não banca certificado. O SmartScreen pode avisar na primeira vez; a integridade se confere pelo SHA-256 publicado junto.
 - O build usa o NSIS do Ubuntu (`apt`). Se a imagem do runner mudar e o build quebrar, a falha aparece no log da etapa *Gerar o instalador*.

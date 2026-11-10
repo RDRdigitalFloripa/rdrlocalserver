@@ -26,7 +26,7 @@ Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 
 
 | Grupo | Rotas |
 |---|---|
-| Estado | `GET /api/state`, `/api/host-status` (CPU/memória/disco; `/api/metrics` é o nome antigo), `/api/log`, `/api/hosts-text` |
+| Estado | `GET /api/state`, `/api/host-status` (CPU/memória/disco/rede, com histórico; `/api/metrics` é o nome antigo), `/api/log`, `/api/hosts-text` |
 | Serviços | `POST /api/svc`, `/api/install`, `/api/install-all`, `/api/trust`, `/api/settings` (inclui `projectDocs` e `autoCheckUpdates`) |
 | Apps | `POST /api/apps/new` (cria arquivos do modelo + deps + site), `/api/apps/ctl` (`start`\|`stop`\|`restart`), `/api/apps/deps`; `GET /api/apps/detect?path=`, `/api/apps/templates` |
 | Linguagens | `GET /api/runtimes/available?rt=node\|python\|go\|java`; `POST /api/runtimes/install`, `/api/runtimes/default`, `/api/runtimes/remove` |

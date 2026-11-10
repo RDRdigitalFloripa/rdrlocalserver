@@ -98,4 +98,4 @@ Hospedagem real (o RDR Local não serve produção; apenas **publica** para ela 
 
 ## 8. Roadmap sugerido
 
-Túnel SSH para o banco de produção, receita "Webhook do Portainer", chave SSH com senha (passphrase), Runtimes gerenciados para Go e Java (JDK), Docker Compose por projeto, perfis de projeto, múltiplas versões de banco, Xdebug, MinIO/Memcached sob demanda, assinatura digital do instalador.
+Túnel SSH para o banco de produção, receita "Webhook do Portainer", chave SSH com senha (passphrase), Runtimes gerenciados para Go e Java (JDK), Docker Compose por projeto, perfis de projeto, múltiplas versões de banco, Xdebug, MinIO/Memcached sob demanda. Fora do roadmap: assinatura digital paga do instalador (o projeto é gratuito e não banca certificado; a integridade é conferida pelo SHA-256).

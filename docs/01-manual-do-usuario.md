@@ -18,7 +18,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 
 | Item | Para que serve |
 |---|---|
-| Painel | Serviços (ligar/desligar), sites, tarefas em andamento |
+| Painel | Serviços (ligar/desligar), sites, tarefas em andamento e, ao lado, os medidores da máquina: processamento e **rede** (download ↓ e upload ↑ em tempo real, com os totais desde que a rede subiu), memória, disco e ambiente |
 | Bancos de dados | Listar/criar/excluir bancos, backups, restauração, Adminer e phpMyAdmin |
 | Terminal | Rodar comandos na pasta do projeto, com o PHP e o Composer do site |
 | Diagnóstico | Verifica extensões, portas, hosts, CA, bancos e `.env` dos projetos |

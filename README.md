@@ -19,6 +19,7 @@ Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Larav
 - **Importar**: sites e bancos de ServBay, Laragon, XAMPP ou de outro MySQL/MariaDB local, com prévia e conferência.
 - **Publicar**: servidores SSH (chave + impressão digital), receitas para Docker Swarm com imagens do GHCR, verificação do build no GitHub Actions e publicação de sites antigos por FTP/FTPS/SFTP com prévia e `.env` nunca enviado.
 - **Diagnóstico**: portas em conflito (ex.: ServBay), extensões do PHP, hosts, certificado.
+- **Painel da máquina**: processamento, memória, disco e **rede** (download/upload em tempo real).
 
 ## Instalação
 

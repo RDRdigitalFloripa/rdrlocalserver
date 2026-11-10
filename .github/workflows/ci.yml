@@ -1,0 +1,54 @@
+# Testes automáticos do RDR Local: sintaxe de todo o código e a suíte de tests/ (no Windows, a plataforma do produto).
+#
+#  - A cada push na main e a cada pull request: sintaxe + suíte rápida (sem internet e sem baixar ferramentas).
+#  - Execução manual (Actions > Testes > Run workflow) com "completo" marcado: roda também os testes que usam a internet
+#    (npm audit/composer audit e o download do rclone). Nada abre o navegador nem autoriza conta nenhuma.
+#
+# Rodar na sua máquina: TESTING.md
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      completo:
+        description: 'Rodar também os testes que usam a internet (--full)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Versões das ferramentas
+        shell: bash
+        run: |
+          node --version
+          npm --version
+
+      - name: Verificar a sintaxe do código
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in server.js mcp.js rdr.js lib/*.js public/app.js tests/*.js tests/lib/*.js; do node --check "$f"; done
+
+      - name: Suíte de testes
+        shell: bash
+        run: node tests/run.js
+
+      - name: Suíte completa (internet)
+        if: github.event_name == 'workflow_dispatch' && inputs.completo
+        shell: bash
+        run: node tests/run.js --full

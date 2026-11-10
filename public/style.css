@@ -27,6 +27,7 @@ body{background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,"Segoe UI",san
 .plan-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .plan-row .bar{margin:6px 0}
 .bar.prog i{background:var(--ok)}
+.net-rates{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:13px;margin-bottom:4px}
 .side-credit{font-size:10px;padding:0 8px 8px;color:var(--side-tx);opacity:.6;text-align:center}
 .side-credit a{color:inherit}
 .side-ver{font-size:10px;letter-spacing:.14em;font-weight:700;padding:4px 8px 2px;color:var(--side-tx);opacity:.7;border-top:1px solid rgba(255,255,255,.08);text-align:center}

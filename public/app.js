@@ -197,6 +197,15 @@ function renderMetrics() {
     const used = M.disk.total - M.disk.free; const dp = (used / M.disk.total) * 100;
     $('#mDisk').innerHTML = `<div class="bar"><i style="width:${dp.toFixed(0)}%"></i></div><span class="muted small">${gb(used)} usados de ${gb(M.disk.total)}</span>`;
   }
+  const nt = M.net;
+  if (nt && nt.ok) {
+    const rate = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB/s' : b >= 1024 ? (b / 1024).toFixed(0) + ' KB/s' : Math.round(b) + ' B/s');
+    const mx = Math.max(102400, ...nt.rxHistory, ...nt.txHistory); // escala mínima de 100 KB/s: tráfego pequeno não vira "pico"
+    const line = (a, color) => `<polyline fill="none" stroke="${color}" stroke-width="1.5" points="${a.map((v, i) => `${(i / Math.max(1, a.length - 1)) * 100},${40 - (v / mx) * 38}`).join(' ')}"/>`;
+    $('#mNet').innerHTML = `<div class="net-rates"><span style="color:var(--ac)" title="Download (recebido)">↓ ${rate(nt.rx)}</span><span style="color:var(--ok)" title="Upload (enviado)">↑ ${rate(nt.tx)}</span></div>`
+      + `<svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">${line(nt.rxHistory, 'var(--ac)')}${line(nt.txHistory, 'var(--ok)')}</svg>`
+      + `<span class="muted small">Escala até ${rate(mx)} · total desde que a rede subiu: ↓ ${gb(nt.totalRx)} ↑ ${gb(nt.totalTx)}</span>`;
+  } else $('#mNet').innerHTML = '<span class="muted small">Indisponível neste sistema.</span>';
 }
 
 function renderJobs() {
@@ -929,7 +938,7 @@ async function guideAction(a, t) {
 
 // ---------- polling ----------
 async function refresh() { try { S = await api('GET', '/api/state', null, true); renderAll(); if ($('#procDlg').open) renderProcs(); } catch (_) { /* servidor reiniciando */ } }
-async function pollMetrics() { try { M = await api('GET', '/api/host-status', null, true); if (page === 'painel') renderMetrics(); } catch (err) { if (!M && page === 'painel') ['#mCpu', '#mMem', '#mDisk'].forEach((k) => { const e = $(k); if (e && !e.innerHTML) e.innerHTML = `<span class="muted small">Sem leitura (${esc(String(err && err.message || err).slice(0, 80))}). Recarregue com Ctrl+F5; se persistir, desative bloqueadores de anúncio/privacidade para 127.0.0.1.</span>`; }); } }
+async function pollMetrics() { try { M = await api('GET', '/api/host-status', null, true); if (page === 'painel') renderMetrics(); } catch (err) { if (!M && page === 'painel') ['#mCpu', '#mMem', '#mDisk', '#mNet'].forEach((k) => { const e = $(k); if (e && !e.innerHTML) e.innerHTML = `<span class="muted small">Sem leitura (${esc(String(err && err.message || err).slice(0, 80))}). Recarregue com Ctrl+F5; se persistir, desative bloqueadores de anúncio/privacidade para 127.0.0.1.</span>`; }); } }
 go(); refresh(); pollMetrics();
 setInterval(refresh, 2000); setInterval(pollMetrics, 2000);
 setInterval(() => { if (page === 'logs') loadLog(); }, 3000);
