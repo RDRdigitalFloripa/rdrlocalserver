@@ -1,6 +1,6 @@
 # Manual do usuário
 
-> RDR Local Server v1.11.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.12.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
@@ -30,6 +30,8 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 | GitHub | Conectar a conta, clonar repositórios, estado do Git (guia *GitHub*) |
 | Publicar | Servidores SSH, receitas (Docker Swarm), sites antigos por FTP/SFTP (guia *Publicar*) |
 | Ajuda | Esta documentação |
+
+No pé do menu há o seletor de **tema**: ☀ Claro, ◐ Automático (segue o Windows) e ☾ Escuro. A escolha fica lembrada neste navegador.
 
 ## 4. Sites
 

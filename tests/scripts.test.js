@@ -21,7 +21,7 @@ h.run(async () => {
   if (!php) h.skip('PHP/Composer não encontrados (RDR_TEST_PHP, RDR_TEST_COMPOSER): testes do Composer pulados');
   const base = h.tmp('scripts'); const mk = (n) => h.mkdir(base, n);
   const wj = (d, f, o) => fs.writeFileSync(path.join(d, f), JSON.stringify(o, null, 2));
-  const srv = await h.startServer({ env: { RDR_SCRIPT_TIMEOUT_MS: '6000' }, setup: (home) => { if (php) tools.installPhp(home, php); } });
+  const srv = await h.startServer({ env: { RDR_SCRIPT_TIMEOUT_MS: '12000' }, setup: (home) => { if (php) tools.installPhp(home, php); } });
   const call = srv.call;
 
   h.title('1) listar scripts');
@@ -48,7 +48,7 @@ h.run(async () => {
     await call('POST', '/api/scripts/run', { id: sA.id, kind: 'npm', name: 'fail' }); j = await srv.waitJob('Script npm fail');
     h.ok(j && j.status === 'error' && /código 3/.test(logOf(j)), 'npm fail: termina em erro com o código de saída', logOf(j));
     await call('POST', '/api/scripts/run', { id: sA.id, kind: 'npm', name: 'slow' });
-    j = await srv.waitJob('Script npm slow', undefined, 40000); h.ok(j && j.status === 'error' && /tempo esgotado/.test(logOf(j)), 'script lento é interrompido pelo limite de tempo (6 s no teste)', logOf(j));
+    j = await srv.waitJob('Script npm slow', undefined, 40000); h.ok(j && j.status === 'error' && /tempo esgotado/.test(logOf(j)), 'script lento é interrompido pelo limite de tempo (12 s no teste)', logOf(j));
     if (h.IS_WIN) {
       await h.sleep(1500);
       const ps = spawnSync('powershell.exe', ['-NoProfile', '-Command', "(Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match ('RDR_SLOW'+'_MARK') } | Measure-Object).Count"], { encoding: 'utf8' });

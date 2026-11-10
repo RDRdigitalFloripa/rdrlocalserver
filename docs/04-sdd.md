@@ -1,6 +1,6 @@
 # SDD — Software Design Document
 
-**Produto:** RDR Local Server v1.11.0
+**Produto:** RDR Local Server v1.12.0
 
 ## 1. Visão geral da arquitetura
 

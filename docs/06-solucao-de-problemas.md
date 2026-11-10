@@ -76,6 +76,14 @@ Dois programas disputam as portas 80/443. Vale para ServBay, XAMPP, IIS/Apache o
 
 Veja a tabela de problemas comuns no guia *Backup na nuvem*. Para ver o que aconteceu, clique em **Enviar agora** e leia o log da tarefa (canto inferior direito). O último resultado também aparece na página, e, com os avisos ligados, chega por Telegram/webhook.
 
+## Meilisearch não inicia: "database version is incompatible with your current engine version"
+
+O banco do Meilisearch só abre na versão em que foi criado (a cada versão menor, ex.: 1.55 → 1.56, ele precisa migrar). Isso acontecia depois de atualizar o Meilisearch em **Componentes e PHP**. A partir da 1.12 o RDR Local resolve sozinho ao iniciar: guarda uma cópia em `datameilisearchackup-<versão>-<data>` e migra com `--upgrade-db`. Se você ainda está numa versão anterior, atualize o RDR Local e inicie o Meilisearch de novo. Se o banco for **mais novo** que o programa instalado, atualize o Meilisearch (não existe volta de versão). Para voltar à cópia: pare o serviço, renomeie `data.ms` e coloque a pasta `data.ms` de dentro do `backup-…` no lugar.
+
+## O botão Pasta não abre a pasta do site
+
+Se a janela do Explorer não aparecer, veja na barra de tarefas se há um ícone piscando (versões até a 1.11 abriam a janela atrás do navegador). Na 1.12 ela vem para a frente. Se a pasta foi movida ou apagada, o painel avisa "A pasta não existe mais": edite o site e aponte para o novo local.
+
 ## Os medidores de CPU/Memória/Disco aparecem vazios
 
 Causa mais comum: **extensão de bloqueio** (uBlock, AdGuard, Privacy Badger…) barrando a chamada de métricas. A partir da 1.2.1 ela se chama `/api/host-status` e a mensagem mostra o motivo. Se ainda falhar, desative a extensão para `127.0.0.1` ou teste em janela anônima. Também ajuda **Ctrl+F5** (interface antiga em cache). A partir da 1.2 os medidores são desenhados ao abrir o Painel; se ainda ficarem vazios, veja o log do painel em `C:\ProgramData\RDRLocal\logs\panel.log`.

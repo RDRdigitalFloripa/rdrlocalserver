@@ -31,6 +31,17 @@ h.run(async () => {
     h.ok(got && got.length === 1 && got[0] === arg, 'launch entrega a pasta intacta (espaço, & , parênteses e barra final)', JSON.stringify(got));
   } else h.skip('launch com caminho difícil (usa o PowerShell do Windows)');
 
+  h.title('botão Pasta (sem abrir janelas de verdade)');
+  if (h.IS_WIN) {
+    const gone = path.join(base, 'nao-existe-mais');
+    let msg = ''; try { dt.openFolder(gone); } catch (e) { msg = e.message; }
+    h.ok(/A pasta não existe mais/.test(msg) && msg.includes(gone), 'pasta que sumiu: erro claro, em vez de abrir os Documentos', msg);
+    const ps = dt.folderScript();
+    h.ok(ps.includes('$env:RDR_DIR') && !ps.includes(base), 'a pasta chega por variável de ambiente, nunca colada no comando (sem injeção por & ou espaço)');
+    h.ok(/SetForegroundWindow/.test(ps) && /AttachThreadInput/.test(ps) && /Shell\.Application/.test(ps), 'o script traz a janela para a frente (o Explorer abria atrás do navegador e parecia não abrir)');
+    h.ok(ps.includes('$1$1'), 'barra invertida no fim do caminho é dobrada (não escapa a aspa de fechamento)');
+  } else h.skip('botão Pasta usa o Explorer do Windows');
+
   h.title('API');
   const srv = await h.startServer(); const call = srv.call;
   const A = mk('site'); const sA = await h.addSite(srv, 'Dev1', A, 'dev1-rdr.test');
@@ -38,4 +49,7 @@ h.run(async () => {
   h.ok(r.status === 200 && Array.isArray(r.j.editors) && typeof r.j.claude === 'boolean' && typeof r.j.github === 'string', 'GET /api/dev/info responde com editores, Claude Code e GitHub', JSON.stringify(r.j).slice(0, 200));
   r = await call('POST', '/api/dev/open', { id: sA.id, what: 'foo' }); h.ok(r.status === 400, 'open com ação desconhecida -> 400');
   r = await call('POST', '/api/dev/open', { id: sA.id, what: 'editor', editor: 'nao-existe' }); h.ok(r.status === 400 && /Editor não encontrado/.test(r.j.error), 'open com editor inexistente -> 400');
+  r = await call('POST', '/api/sites/folder', { id: 'xxxx' }); h.ok(r.status === 400 && /Site não encontrado/.test(r.j.error), 'Pasta de um site inexistente -> 400');
+  fs.rmSync(A, { recursive: true, force: true });
+  r = await call('POST', '/api/sites/folder', { id: sA.id }); h.ok(r.status === 400 && /não existe mais|só no Windows/.test(r.j.error), 'Pasta de um site cuja pasta foi apagada -> erro claro (e nenhuma janela abre)', r.j.error);
 });

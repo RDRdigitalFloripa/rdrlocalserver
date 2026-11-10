@@ -20,13 +20,14 @@ Código de saída `0` = tudo certo; `1` = alguma falha. Linhas `PULOU` não são
 | `aifiles.test.js` | `CLAUDE.md`, `AGENTS.md` e `docs/` dos projetos novos (texto exato da regra do português, nomes `NN-DD-MM-AAAA`, nunca sobrescreve) |
 | `plan.test.js` | Plano do projeto: parser das tarefas e do diário, marcar, adicionar, edição simultânea pelo agente, CRLF, projeto novo |
 | `rdrfile.test.js` | `rdr.json`: plano, aplicação, erros claros, confirmação do comando do app, exportação sem segredos e `rdr up` |
-| `panel.test.js` | Estado e versão, configurações, atualização do próprio app (release simulada), segurança da API (Host, CSRF, caminhos) e métricas de CPU, memória, disco e **rede** |
+| `panel.test.js` | Estado e versão, configurações, atualização do próprio app (release simulada), segurança da API (Host, CSRF, caminhos), tema claro/automático/escuro e métricas de CPU, memória, disco e **rede** |
 | `envfile.test.js` | Comparar e editar o `.env` sem devolver valores sensíveis pela API |
 | `scripts.test.js` | Scripts do `composer.json`/`package.json`, recusas, limite de tempo e auditoria de segurança |
-| `devtools.test.js` | Link do repositório (sem token), abrir editor/terminal com caminhos difíceis |
+| `devtools.test.js` | Link do repositório (sem token), abrir editor/terminal com caminhos difíceis e o botão Pasta (erros claros e script que traz a janela para a frente; não abre janelas de verdade) |
 | `smtp.test.js` | Cliente SMTP próprio contra servidores falsos (sem criptografia, STARTTLS, SSL/TLS, login, falhas) |
 | `mail.test.js` | Página E-mail: perfil, senha protegida, testar, limite de 10 por hora, aplicar no `.env` |
 | `drive.test.js` | Google Drive em um clique: validações e, no modo completo, destino existente com criptografia |
+| `meili.test.js` | Meilisearch: quando migrar o banco (comparação numérica de versão), cópia de segurança antes do `--upgrade-db`, banco mais novo que o programa e primeira partida |
 | `caddy.test.js` | Caddyfile gerado (bloqueio de `docs/`, `CLAUDE.md`, `AGENTS.md`, `rdr.json`) e validação com o Caddy |
 | `release.test.js` | Mesma versão em `package.json`, rodapé e `CHANGELOG`; notas da release; ações do workflow fixadas por SHA |
 

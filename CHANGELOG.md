@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0
+- **Modo escuro com escolha:** três botões no pé do menu lateral (☀ Claro, ◐ Automático, ☾ Escuro). **Automático** segue o tema do Windows e muda na hora quando ele muda; a escolha fica lembrada neste navegador e a tela já abre no tema certo, sem piscar em claro. O tema escuro ficou mais confortável para horas de trabalho: texto um pouco abaixo do branco puro, fundo azul-grafite (contraste de 6,4 a 14,3:1) e as barras de rolagem, campos e diálogos nativos também escurecem.
+- **Meilisearch não iniciava depois de atualizar** ("Your database version (1.55.0) is incompatible with your current engine version (1.56.2)"): o Meilisearch não abre o banco de uma versão menor anterior. Agora, ao iniciar, o RDR Local compara a versão do banco (`data.ms/VERSION`) com a do programa; se o banco é mais antigo, faz uma **cópia de segurança** em `datameilisearchackup-<versão>-<data>` (mantém as 2 mais novas) e inicia com `--upgrade-db`. Se o banco for mais novo que o programa, recusa com a explicação em vez de falhar no log. Basta iniciar o serviço de novo.
+- **Botão Pasta (abrir a pasta do site) parecia não fazer nada:** o Explorer abria a janela, mas atrás do navegador (o painel não é o programa em primeiro plano), só piscando na barra de tarefas. Agora a janela vem para a frente, inclusive quando a pasta já estava aberta e se estava minimizada; nomes com espaço, `&` e parênteses funcionam, e uma pasta que não existe mais mostra o erro em vez de abrir os Documentos.
+
 ## 1.11.0
 - **Ferramentas do projeto** (novo ícone de ajustes na linha de cada site com pasta):
   - **Scripts:** lista os scripts do `composer.json` e do `package.json` e roda cada um com um clique, com o PHP e o Node do site, e a saída no log da tarefa. Só roda scripts que existem no arquivo; eventos do Composer e ciclos de vida do npm não viram botão; scripts que não terminam (`dev`, `watch`, `serve`) são marcados e não rodam aqui; limite de 10 minutos.

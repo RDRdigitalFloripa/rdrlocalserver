@@ -942,6 +942,11 @@ async function refresh() { try { S = await api('GET', '/api/state', null, true);
 async function pollMetrics() { try { M = await api('GET', '/api/host-status', null, true); if (page === 'painel') renderMetrics(); } catch (err) { if (!M && page === 'painel') ['#mCpu', '#mMem', '#mDisk', '#mNet'].forEach((k) => { const e = $(k); if (e && !e.innerHTML) e.innerHTML = `<span class="muted small">Sem leitura (${esc(String(err && err.message || err).slice(0, 80))}). Recarregue com Ctrl+F5; se persistir, desative bloqueadores de anúncio/privacidade para 127.0.0.1.</span>`; }); } }
 go(); refresh(); pollMetrics();
 setInterval(refresh, 2000); setInterval(pollMetrics, 2000);
+
+// Tema (Claro / Automático / Escuro): o script do <head> aplica; aqui só liga os botões e marca o escolhido.
+function markTheme() { const p = (window.rdrTheme && window.rdrTheme.pref()) || 'auto'; document.querySelectorAll('#themeSel button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === p))); }
+document.querySelector('#themeSel')?.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (!b || !window.rdrTheme) return; window.rdrTheme.set(b.dataset.themeSet); markTheme(); });
+markTheme();
 setInterval(() => { if (page === 'logs') loadLog(); }, 3000);
 
 

@@ -20,6 +20,16 @@ h.run(async () => {
   const srv = await h.startServer({ env: { RDR_FAKE_APP_RELEASE: JSON.stringify(REL) } });
   const call = srv.call; const www = h.tmp('www');
 
+  h.title('tema claro/automático/escuro');
+  const idx = await raw(srv.port, { path: '/', headers: { Host: `127.0.0.1:${srv.port}` } });
+  const css = await raw(srv.port, { path: '/style.css', headers: { Host: `127.0.0.1:${srv.port}` } });
+  const appjs = await raw(srv.port, { path: '/app.js', headers: { Host: `127.0.0.1:${srv.port}` } });
+  h.ok(['light', 'auto', 'dark'].every((v) => idx.text.includes(`data-theme-set="${v}"`)) && /id="themeSel"/.test(idx.text), 'três botões de tema no menu lateral (claro, automático, escuro)');
+  h.ok(/window\.rdrTheme\s*=/.test(idx.text) && idx.text.indexOf('rdrTheme') < idx.text.indexOf('<body'), 'o script do tema roda no <head>, antes da primeira pintura (a tela não pisca em claro)');
+  h.ok(/:root\[data-theme="dark"\]\s*\{/.test(css.text) && /color-scheme:\s*dark/.test(css.text) && /color-scheme:\s*light/.test(css.text), 'CSS: tema escuro por data-theme e color-scheme (barras de rolagem e campos nativos acompanham)');
+  h.ok(!/@media\s*\(prefers-color-scheme/.test(css.text), 'o tema não depende mais só do media query do sistema (a escolha do usuário vale)');
+  h.ok(/#themeSel/.test(appjs.text) && /rdrTheme\.set/.test(appjs.text), 'app.js liga os botões ao tema');
+
   h.title('estado e versão');
   let r = await call('GET', '/api/state');
   h.ok(r.status === 200 && r.j.version === VERSION, 'versão do /api/state é a do package.json', `${r.j.version} x ${VERSION}`);

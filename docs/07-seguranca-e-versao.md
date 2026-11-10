@@ -37,7 +37,7 @@ O RDR Local é uma ferramenta de **desenvolvimento**. Ele assume que a máquina 
 
 ## Versão
 
-**RDR Local Server v1.11.0** — desenvolvido por RDR Digital.
+**RDR Local Server v1.12.0** — desenvolvido por RDR Digital.
 
 Novidades da 1.3: **Backup na nuvem** (Google Drive, Dropbox, S3/R2/B2, pasta ou disco) com rclone, criptografia opcional, teste de restauração, retenção protegida e avisos de falha por Telegram/webhook. Veja o guia *Backup na nuvem*.
 
@@ -49,7 +49,7 @@ Novidades da 1.6: **Importar bancos de outro servidor** (MySQL/MariaDB ligado ne
 
 Novidades da 1.7: **Publicar** — servidores SSH, chaves, impressão digital, receitas Docker Swarm (imagens do GHCR) e verificação do build no GitHub Actions. Veja o guia *Publicar*.
 
-Novidades da 1.8: publicação de sites antigos por **FTP, FTPS e SFTP** com prévia e envio incremental. 1.8.1: endereço `https://rdr-local-server.local` para o painel. 1.8.2: versão correta na imagem do instalador. 1.8.3: documentação atualizada. 1.9.0: botão **Reverter** nas receitas de Publicar. 1.9.1: criar app instala a linguagem que faltar. 1.9.2: botão "Instalar versão LTS" por linguagem. 1.10.0: projetos novos com `CLAUDE.md`, `AGENTS.md` e `docs/`; atualização do próprio RDR Local pelo painel (instalador conferido por SHA-256); verificação automática de atualizações com selo no menu; Composer e phpMyAdmin na lista de atualizações. 1.11.0: ferramentas do projeto (scripts, auditoria de segurança, `.env` × `.env.example` e atalhos) e plano do projeto (especificação, tarefas e diário).
+Novidades da 1.8: publicação de sites antigos por **FTP, FTPS e SFTP** com prévia e envio incremental. 1.8.1: endereço `https://rdr-local-server.local` para o painel. 1.8.2: versão correta na imagem do instalador. 1.8.3: documentação atualizada. 1.9.0: botão **Reverter** nas receitas de Publicar. 1.9.1: criar app instala a linguagem que faltar. 1.9.2: botão "Instalar versão LTS" por linguagem. 1.10.0: projetos novos com `CLAUDE.md`, `AGENTS.md` e `docs/`; atualização do próprio RDR Local pelo painel (instalador conferido por SHA-256); verificação automática de atualizações com selo no menu; Composer e phpMyAdmin na lista de atualizações. 1.11.0: ferramentas do projeto (scripts, auditoria de segurança, `.env` × `.env.example` e atalhos) e plano do projeto (especificação, tarefas e diário). 1.12.0: modo escuro com escolha (claro, automático, escuro), migração do banco do Meilisearch com cópia de segurança e correção do botão Pasta.
 
 Novidades da 1.2: runtimes gerenciados de **Go** e **Java (JDK Temurin)** com SHA-256, modelos TypeScript (Express), Vite+React+TS, Next.js, Go e Spring Boot, versão dinâmica no painel, medidores de CPU/memória/disco desenhados na hora e diagnóstico de *quem atende as portas 80/443/53* (detecta ServBay/XAMPP ou outra cópia do RDR Local).
 
