@@ -190,7 +190,7 @@ const gb = (n) => (n / 1073741824).toFixed(1) + ' GB';
 function renderMetrics() {
   if (!M) return;
   const pts = M.cpuHistory.map((v, i) => `${(i / Math.max(1, M.cpuHistory.length - 1)) * 100},${40 - (v / 100) * 38}`).join(' ');
-  $('#mCpu').innerHTML = gauge(M.cpu) + `<svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none"><polyline fill="none" stroke="var(--ac)" stroke-width="1.5" points="${pts}"/></svg>`;
+  $('#mCpu').innerHTML = gauge(M.cpu) + `<svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--ac)" stroke-width="1.5" points="${pts}"/></svg>`;
   const mp = (M.mem.used / M.mem.total) * 100;
   $('#mMem').innerHTML = `<div class="bar"><i style="width:${mp.toFixed(0)}%"></i></div><span class="muted small">${gb(M.mem.used)} de ${gb(M.mem.total)} (${mp.toFixed(0)}%)</span>`;
   if (M.disk.total) {
@@ -202,9 +202,10 @@ function renderMetrics() {
     const rate = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB/s' : b >= 1024 ? (b / 1024).toFixed(0) + ' KB/s' : Math.round(b) + ' B/s');
     const mx = Math.max(102400, ...nt.rxHistory, ...nt.txHistory); // escala mínima de 100 KB/s: tráfego pequeno não vira "pico"
     const line = (a, color) => `<polyline fill="none" stroke="${color}" stroke-width="1.5" points="${a.map((v, i) => `${(i / Math.max(1, a.length - 1)) * 100},${40 - (v / mx) * 38}`).join(' ')}"/>`;
-    $('#mNet').innerHTML = `<div class="net-rates"><span style="color:var(--ac)" title="Download (recebido)">↓ ${rate(nt.rx)}</span><span style="color:var(--ok)" title="Upload (enviado)">↑ ${rate(nt.tx)}</span></div>`
-      + `<svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">${line(nt.rxHistory, 'var(--ac)')}${line(nt.txHistory, 'var(--ok)')}</svg>`
-      + `<span class="muted small">Escala até ${rate(mx)} · total desde que a rede subiu: ↓ ${gb(nt.totalRx)} ↑ ${gb(nt.totalTx)}</span>`;
+    // só a seta leva a cor da linha (o verde sobre branco não passa de 3,3:1 como texto); o número fica na cor de texto
+    $('#mNet').innerHTML = `<div class="net-rates"><span title="Download (recebido)"><i class="dn">↓</i> ${rate(nt.rx)}</span><span title="Upload (enviado)"><i class="up">↑</i> ${rate(nt.tx)}</span></div>`
+      + `<svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">${line(nt.rxHistory, 'var(--ac)')}${line(nt.txHistory, 'var(--ok)')}</svg>`
+      + `<span class="muted small">Total: ↓ ${gb(nt.totalRx)} ↑ ${gb(nt.totalTx)} · escala ${rate(mx)}</span>`;
   } else $('#mNet').innerHTML = '<span class="muted small">Indisponível neste sistema.</span>';
 }
 
