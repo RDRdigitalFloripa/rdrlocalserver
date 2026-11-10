@@ -71,6 +71,7 @@ function go() {
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('on', p.id === 'p-' + page));
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.p === page));
   if (page === 'config') fillSettings();
+  if (page === 'email') loadSmtp();
   if (page === 'componentes' && S && S.updates && S.updates.pending) checkUpdates(false);
   if (page === 'bancos') { loadDbs(); loadBackups(); }
   if (page === 'diagnostico' && !window._dg) runDoctor();
@@ -237,6 +238,8 @@ function renderMail() {
   $('#mailLink').href = S.mailUrl; $('#mailLink').textContent = `Abrir ${S.mailDomain}`;
   $('#mailState').textContent = !mp.installed ? 'Mailpit não instalado (aba Componentes)' : mp.running ? 'Mailpit em execução' : 'Mailpit parado — inicie no Painel';
   $('#mailConf').textContent = `MAIL_MAILER=smtp\nMAIL_HOST=127.0.0.1\nMAIL_PORT=${S.connection.mail.port}\nMAIL_USERNAME=null\nMAIL_PASSWORD=null\nMAIL_ENCRYPTION=null`;
+  const sel = $('#smtpSite'); const opts = S.sites.filter((x) => x.path).map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') || '<option value="">(nenhum site com pasta)</option>';
+  if (sel.dataset.opts !== opts) { const keep = sel.value; sel.innerHTML = opts; sel.dataset.opts = opts; if (keep) sel.value = keep; }
 }
 
 function renderConn() {
@@ -411,6 +414,59 @@ $('#devTabPlano').addEventListener('change', async (ev) => { // trocar o estado 
   const el = ev.target; if (!el.classList || !el.classList.contains('plan-st')) return;
   try { await api('POST', '/api/plan/task', { id: DEV.id, line: Number(el.dataset.line), expect: el.dataset.text, state: el.value }); } catch (_) { /* o aviso já foi mostrado */ }
   await loadPlan(); loadPlanOverview();
+});
+// ---------- e-mail: SMTP real (testar envio de verdade) ----------
+const SM = { data: null };
+const smtpForm = () => ({ host: $('#smtpHost').value, port: $('#smtpPort').value, secure: $('#smtpSecure').value, user: $('#smtpUser').value, from: $('#smtpFrom').value, fromName: $('#smtpFromName').value, insecureTls: $('#smtpInsecure').checked });
+function renderSmtpEnv() {
+  const f = smtpForm(); const enc = f.secure === 'starttls' ? 'tls' : f.secure === 'ssl' ? 'ssl' : 'null';
+  $('#smtpEnv').textContent = `MAIL_MAILER=smtp\nMAIL_HOST=${f.host || '(servidor)'}\nMAIL_PORT=${f.port}\nMAIL_USERNAME=${f.user || 'null'}\nMAIL_PASSWORD=${f.user ? '(a senha salva)' : 'null'}\nMAIL_ENCRYPTION=${enc}\nMAIL_FROM_ADDRESS=${f.from || '(remetente)'}\nMAIL_FROM_NAME="${f.fromName}"`;
+}
+function fillSmtp() {
+  const d = SM.data; if (!d) return;
+  $('#smtpPreset').innerHTML = '<option value="">Personalizado</option>' + d.presets.map((p) => `<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
+  $('#smtpHost').value = d.host; $('#smtpPort').value = d.port; $('#smtpSecure').value = d.secure; $('#smtpUser').value = d.user; $('#smtpFrom').value = d.from; $('#smtpFromName').value = d.fromName; $('#smtpInsecure').checked = d.insecureTls;
+  if (!$('#smtpTo').value) $('#smtpTo').value = d.lastTo || d.from || '';
+  $('#smtpPass').value = ''; $('#smtpPass').placeholder = d.hasPassword ? '(senha salva: deixe em branco para manter)' : 'senha do SMTP';
+  $('#smtpClearPw').hidden = !d.hasPassword; $('#smtpNote').textContent = ''; renderSmtpEnv();
+}
+async function loadSmtp() { try { SM.data = await api('GET', '/api/mail', null, true); } catch (_) { return; } fillSmtp(); }
+function renderSmtpResult(r) {
+  const rows = r.steps.map((s) => `<div style="display:flex;gap:8px;padding:2px 0"><span style="color:var(--${s.ok ? 'ok' : 'bad'})">${s.ok ? '✔' : '✘'}</span><span style="flex:1;overflow-wrap:anywhere">${esc(s.text)}</span><span class="muted small">${s.ms} ms</span></div>`).join('');
+  $('#smtpResult').innerHTML = rows + (r.ok ? '<div class="chip on" style="margin-top:8px">Deu certo</div>' : `<div class="banner warn" style="margin-top:8px"><span><b>${esc(r.error)}</b><br>${esc(r.hint || '')}</span></div>`);
+}
+$('#smtpPreset').onchange = () => {
+  const p = (SM.data ? SM.data.presets : []).find((x) => x.id === $('#smtpPreset').value); $('#smtpNote').textContent = p ? p.note : '';
+  if (!p) return;
+  $('#smtpHost').value = p.host; $('#smtpPort').value = p.port; $('#smtpSecure').value = p.secure; $('#smtpUser').value = p.user || ''; if (p.id === 'mailpit') $('#smtpPass').value = '';
+  renderSmtpEnv();
+};
+$('#smtpSecure').onchange = () => { const m = { starttls: '587', ssl: '465', none: '25' }; if (['587', '465', '25'].includes($('#smtpPort').value)) $('#smtpPort').value = m[$('#smtpSecure').value]; renderSmtpEnv(); };
+$('#smtpForm').addEventListener('input', renderSmtpEnv);
+$('#smtpSave').onclick = act(async () => { await api('POST', '/api/mail/save', { ...smtpForm(), password: $('#smtpPass').value }); ui.toast('SMTP salvo'); await loadSmtp(); });
+$('#smtpClearPw').onclick = act(async () => {
+  if (!(await ui.confirm({ title: 'Apagar a senha salva', okText: 'Apagar', danger: true, html: 'Remove a senha do SMTP guardada neste PC. Os outros campos continuam salvos.' }))) return;
+  await api('POST', '/api/mail/save', { ...smtpForm(), clearPassword: true }); ui.toast('Senha apagada'); await loadSmtp();
+});
+$('#smtpConnect').onclick = act(async () => {
+  $('#smtpResult').innerHTML = '<div class="muted small">Testando a conexão…</div>';
+  try { renderSmtpResult(await api('POST', '/api/mail/test', { mode: 'connect', settings: smtpForm(), password: $('#smtpPass').value })); } catch (_) { $('#smtpResult').innerHTML = ''; }
+});
+$('#smtpSend').onclick = act(async () => {
+  const f = smtpForm(); const to = $('#smtpTo').value.trim();
+  if (!(await ui.confirm({ title: 'Enviar e-mail de teste', okText: 'Enviar', html: `Vai enviar <b>de verdade</b> um e-mail de teste de <b>${esc(f.from || '(sem remetente)')}</b> para <b>${esc(to || '(sem destino)')}</b> pelo servidor <b>${esc(f.host)}:${esc(f.port)}</b>. Continuar?` }))) return;
+  $('#smtpResult').innerHTML = '<div class="muted small">Enviando…</div>';
+  try { renderSmtpResult(await api('POST', '/api/mail/test', { mode: 'send', settings: f, password: $('#smtpPass').value, to })); } catch (_) { $('#smtpResult').innerHTML = ''; }
+});
+$('#smtpApplyReal').onclick = act(async () => {
+  const id = $('#smtpSite').value; const s = S.sites.find((x) => x.id === id); if (!s) return;
+  if (!(await ui.confirm({ title: 'Usar o SMTP real no projeto', okText: 'Gravar no .env', html: `Vai gravar no <code>.env</code> de <b>${esc(s.name)}</b> o servidor salvo <b>${esc((SM.data || {}).host || '')}</b>, <b>inclusive a senha</b> (o <code>.env</code> não vai para o Git). Este projeto passará a mandar e-mails de verdade. Continuar?` }))) return;
+  const r = await api('POST', '/api/mail/apply', { id, mode: 'real' }); ui.toast(`${r.keys.length} variáveis gravadas no .env. Rode "php artisan config:clear" se for Laravel.`);
+});
+$('#smtpApplyMailpit').onclick = act(async () => {
+  const id = $('#smtpSite').value; const s = S.sites.find((x) => x.id === id); if (!s) return;
+  if (!(await ui.confirm({ title: 'Voltar para o Mailpit', okText: 'Gravar no .env', html: `Vai gravar no <code>.env</code> de <b>${esc(s.name)}</b> o Mailpit local (nada sai para a internet).` }))) return;
+  const r = await api('POST', '/api/mail/apply', { id, mode: 'mailpit' }); ui.toast(`${r.keys.length} variáveis gravadas no .env.`);
 });
 async function loadLog() {
   const sel = $('#logSel');

@@ -238,12 +238,38 @@
 
   <!-- EMAIL -->
   <section id="p-email" class="page">
-    <div class="topbar"><h1>E-mail de testes (Mailpit)</h1></div>
+    <div class="topbar"><h1>E-mail</h1></div>
     <div class="card">
-      <p class="muted" style="margin-top:0">Todo e-mail enviado pelos seus projetos fica retido aqui, nada sai para a internet.</p>
+      <h2>Mailpit: caixa de testes local</h2>
+      <p class="muted" style="margin-top:0">Com o Mailpit, todo e-mail enviado pelos seus projetos fica retido aqui, nada sai para a internet.</p>
       <div class="row"><a id="mailLink" class="btn" target="_blank">Abrir caixa de entrada</a><span id="mailState" class="muted"></span></div>
     </div>
-    <div class="card"><h2>Configuração para Laravel / PHP</h2><pre id="mailConf" class="code"></pre></div>
+    <div class="card"><h2>Configuração para Laravel / PHP (Mailpit)</h2><pre id="mailConf" class="code"></pre></div>
+    <div class="card">
+      <h2>Servidor SMTP real: testar o envio de verdade</h2>
+      <p class="muted small" style="margin-top:0">Informe os dados do seu provedor para validar um envio real. A senha é guardada protegida pelo Windows e nunca é exibida. Testar a conexão não envia nada; o e-mail de teste sai de verdade para o destino que você escolher.</p>
+      <div class="form" id="smtpForm">
+        <label>Provedor (sugestão)<select id="smtpPreset"></select></label>
+        <label>Servidor (host)<input id="smtpHost" placeholder="smtp.seuprovedor.com" autocomplete="off" spellcheck="false"></label>
+        <label>Porta<input id="smtpPort" type="number" min="1" max="65535"></label>
+        <label>Segurança<select id="smtpSecure"><option value="starttls">STARTTLS (porta 587)</option><option value="ssl">SSL/TLS (porta 465)</option><option value="none">Nenhuma (porta 25)</option></select></label>
+        <label>Usuário<input id="smtpUser" autocomplete="off" spellcheck="false" placeholder="geralmente o e-mail completo"></label>
+        <label>Senha<input id="smtpPass" type="password" autocomplete="new-password"></label>
+        <label>E-mail do remetente (From)<input id="smtpFrom" placeholder="contato@seudominio.com.br" autocomplete="off" spellcheck="false"></label>
+        <label>Nome do remetente (opcional)<input id="smtpFromName" placeholder="Minha Empresa" autocomplete="off"></label>
+        <label class="row full" style="gap:8px"><input type="checkbox" id="smtpInsecure"><span>Aceitar certificado inválido (só para teste em servidor seu)</span></label>
+      </div>
+      <p class="muted small" id="smtpNote" style="margin:8px 0 0"></p>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px"><button id="smtpSave">Salvar</button><button class="sec" id="smtpConnect">Testar conexão</button><button class="sec" id="smtpClearPw" hidden>Apagar a senha salva</button></div>
+      <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center"><input id="smtpTo" placeholder="e-mail de destino do teste" autocomplete="off" spellcheck="false" style="flex:1;min-width:220px"><button id="smtpSend">Enviar e-mail de teste</button></div>
+      <div id="smtpResult" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2>Usar nos projetos</h2>
+      <p class="muted small" style="margin-top:0">Grava as variáveis <code>MAIL_*</code> no <code>.env</code> do projeto (guarda o <code>.env.backup</code>). No Laravel, depois rode <code>php artisan config:clear</code>.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><select id="smtpSite" style="min-width:220px"></select><button class="sec" id="smtpApplyReal">Usar o SMTP real</button><button class="sec" id="smtpApplyMailpit">Voltar para o Mailpit</button></div>
+      <pre id="smtpEnv" class="code" style="margin-top:10px"></pre>
+    </div>
   </section>
 
   <!-- SSL -->

@@ -22,7 +22,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 | Bancos de dados | Listar/criar/excluir bancos, backups, restauração, Adminer e phpMyAdmin |
 | Terminal | Rodar comandos na pasta do projeto, com o PHP e o Composer do site |
 | Diagnóstico | Verifica extensões, portas, hosts, CA, bancos e `.env` dos projetos |
-| E-mail | Caixa do Mailpit (https://mail.test) |
+| E-mail | Caixa do Mailpit (https://mail.test) e **SMTP real** editável para testar o envio de verdade (teste de conexão, e-mail de teste e "usar no projeto"). Veja o guia *E-mail e SMTP* |
 | Certificado SSL | Status da CA local e botão de confiar |
 | Componentes e PHP | Instalar/atualizar componentes, versões de PHP, Node.js e Python, editor do php.ini |
 | Logs | Logs dos serviços e `laravel.log` do projeto |
