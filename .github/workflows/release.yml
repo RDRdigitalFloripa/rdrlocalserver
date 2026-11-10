@@ -39,6 +39,11 @@ jobs:
             echo "::error::public/index.html não mostra a versão v${VERSION} (rodapé da barra lateral)."
             exit 1
           fi
+          # o pgvector precisa ter o SHA-256 de cada zip gravado no código (RELEASING.md); vazio = o painel recusaria instalar
+          if ! grep -E "^\s+sha256: \{ 16: '[0-9a-f]{64}', 17: '[0-9a-f]{64}' \}" lib/components.js > /dev/null; then
+            echo "::error::PGVECTOR.sha256 em lib/components.js está vazio ou fora do formato. Rode o workflow pgvector e cole os SHA-256 (RELEASING.md)."
+            exit 1
+          fi
           bash installer/release-notes.sh "${VERSION}" > release-notes.md
           echo "Versão ${VERSION}; notas:"
           cat release-notes.md

@@ -59,4 +59,20 @@ h.run(async () => {
   }
   const rel = h.read(path.join(wfDir, 'release.yml'));
   h.ok(/permissions:\s*\n\s+contents: read/.test(rel), 'release.yml: permissão padrão é só leitura (a escrita fica só no job que publica)');
+
+  h.title('pgvector: workflow e código falam da mesma versão');
+  const pgw = files.includes('pgvector.yml') ? h.read(path.join(wfDir, 'pgvector.yml')) : '';
+  const compsSrc = h.read(path.join(ROOT, 'lib', 'components.js'));
+  const inCode = /const PGVECTOR = \{\s*version: '([\d.]+)', rev: '(r\d+)',\s*sha256: \{ 16: '([0-9a-f]*)', 17: '([0-9a-f]*)' \}/.exec(compsSrc);
+  const wfTag = /PGVECTOR_TAG: v([\d.]+)/.exec(pgw); const wfRev = /REVISAO: (r\d+)/.exec(pgw); const wfCommit = /PGVECTOR_COMMIT: ([0-9a-f]{40})\b/.exec(pgw);
+  h.ok(!!pgw && !!inCode && !!wfTag && !!wfRev, 'pgvector.yml e PGVECTOR (lib/components.js) existem e têm o formato esperado');
+  h.ok(!!wfCommit, 'o workflow fixa o pgvector pelo commit completo (a tag poderia ser movida)');
+  h.ok(inCode && wfTag && wfRev && inCode[1] === wfTag[1] && inCode[2] === wfRev[1], 'versão e revisão do pgvector iguais no workflow e em lib/components.js', `${inCode && inCode[1]}-${inCode && inCode[2]} x ${wfTag && wfTag[1]}-${wfRev && wfRev[1]}`);
+  const alvos = [...pgw.matchAll(/'(\d+):\d+\.\d+-\d+'/g)].map((m) => m[1]).sort().join(',');
+  h.ok(alvos === '16,17', 'o workflow compila para o PostgreSQL 16 e 17 (as versões que o painel instala)', alvos);
+  h.ok(fs.existsSync(path.join(ROOT, 'installer', 'build-pgvector.ps1')), 'installer/build-pgvector.ps1 existe');
+  h.ok(/permissions:\s*\n\s+contents: read/.test(pgw), 'pgvector.yml: permissão padrão é só leitura');
+  h.ok(/--latest=false/.test(pgw), 'a release do pgvector nunca vira a "latest" (o painel consulta a latest para atualizar o app)');
+  if (inCode && /^[0-9a-f]{64}$/.test(inCode[3]) && /^[0-9a-f]{64}$/.test(inCode[4])) h.ok(inCode[3] !== inCode[4], 'SHA-256 do pgvector gravado para o PostgreSQL 16 e 17 (e diferentes entre si)');
+  else h.skip('SHA-256 do pgvector ainda vazio em lib/components.js: rode o workflow pgvector e cole os hashes (a publicação do app só sai com eles)');
 });

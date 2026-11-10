@@ -340,6 +340,7 @@ const routes = {
   'POST /api/scan': async (b) => ({ added: await sites.scan(String(b.root || '').trim()) }),
   'POST /api/project': async (b) => { projects.create(b); return ok(); },
   'POST /api/db/create': async (b) => { await db.create(b.engine, b.name); return ok(); },
+  'POST /api/db/vector': async (b) => ({ ok: true, version: await db.enableVector(b.engine, b.name) }),
   'POST /api/db/drop': async (b) => {
     if (b.confirm !== b.name) throw new Error('Confirmação não confere com o nome do banco.');
     const saved = await db.drop(b.engine, b.name); return { ok: true, backup: saved };

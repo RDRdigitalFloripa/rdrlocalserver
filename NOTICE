@@ -12,6 +12,7 @@ O instalador inclui o Node.js (licença MIT; texto completo em licenses/Node.js-
 são baixados de suas fontes oficiais, em tempo de execução, quando você os instala, e mantêm suas próprias licenças.
 
 Caddy (Apache-2.0) · PHP (PHP License) · Composer (MIT) · MariaDB (GPL-2.0) · PostgreSQL (PostgreSQL License)
+pgvector (PostgreSQL License; compilado a partir do código-fonte oficial e publicado em uma release deste repositório, com a licença dentro do pacote)
 Redis (conforme a versão baixada; veja a licença do pacote) · Mailpit (MIT) · Adminer (Apache-2.0 / GPL-2.0)
 phpMyAdmin (GPL-2.0) · Meilisearch (MIT/BUSL conforme a versão) · Cloudflared (Apache-2.0) · rclone (MIT)
 Python (PSF License) · Go (BSD-3-Clause) · Eclipse Temurin JDK (GPL-2.0 com Classpath Exception)

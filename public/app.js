@@ -263,9 +263,10 @@ async function loadDbs() {
   const engine = $('#dbEngine').value; const el = $('#dbList');
   try {
     const { databases } = await api('GET', `/api/db/list?engine=${engine}`, null, true);
-    el.innerHTML = `<table><thead><tr><th>Banco</th><th>Tamanho</th><th></th></tr></thead><tbody>` + databases.map((d) => `<tr><td>${esc(d.name)} ${d.system ? '<span class="badge">sistema</span>' : ''}</td><td>${d.mb} MB</td>
+    const vecOk = engine === 'postgres' && !!((S && S.components) || []).find((c) => c.id === 'pgvector' && c.installed);
+    el.innerHTML = `<table><thead><tr><th>Banco</th><th>Tamanho</th><th></th></tr></thead><tbody>` + databases.map((d) => `<tr><td>${esc(d.name)} ${d.system ? '<span class="badge">sistema</span>' : ''}${d.vector ? ` <span class="badge" title="Extensão pgvector ativa neste banco">pgvector ${esc(d.vector)}</span>` : ''}</td><td>${d.mb} MB</td>
       <td style="text-align:right;white-space:nowrap">${S && engine === 'mariadb' && S.pma.installed ? `<a class="btn sm" target="_blank" href="${esc(S.pma.db.replace('__DB__', encodeURIComponent(d.name)))}">phpMyAdmin</a> ` : ''}${S && S.adminer.installed ? `<a class="btn sm sec" target="_blank" href="${esc(S.adminer[engine === 'postgres' ? 'postgres' : 'mariadb'] + '&db=' + encodeURIComponent(d.name))}">Adminer</a> ` : ''}
-        <button class="sec sm" data-a="dbBackup" data-name="${esc(d.name)}">Backup</button> ${d.system ? '' : `<button class="bad sm" data-a="dbDrop" data-name="${esc(d.name)}">Excluir</button>`}</td></tr>`).join('') + '</tbody></table>';
+        ${vecOk && !d.vector ? `<button class="sec sm" data-a="dbVector" data-name="${esc(d.name)}" title="CREATE EXTENSION vector neste banco">Ativar pgvector</button> ` : ''}<button class="sec sm" data-a="dbBackup" data-name="${esc(d.name)}">Backup</button> ${d.system ? '' : `<button class="bad sm" data-a="dbDrop" data-name="${esc(d.name)}">Excluir</button>`}</td></tr>`).join('') + '</tbody></table>';
     updateAdminer();
   } catch (e) { el.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
@@ -671,6 +672,7 @@ document.addEventListener('click', async (e) => {
     case 'procLog': window._logPick = `proc:${window._procSite}:${t.dataset.kind}`; $('#logSel').innerHTML = ''; $('#procDlg').close(); location.hash = '#logs'; break;
     case 'laravelLog': window._logPick = `laravel:${window._procSite}`; $('#logSel').innerHTML = ''; $('#procDlg').close(); location.hash = '#logs'; break;
     case 'fix': { const r = await api('POST', '/api/doctor/fix', { action: t.dataset.fix }); ui.toast(r.message); window._dg = null; runDoctor(); break; }
+    case 'dbVector': { const r = await api('POST', '/api/db/vector', { engine: 'postgres', name: t.dataset.name }); ui.toast(`pgvector ${r.version} ativado em ${t.dataset.name}.`); loadDbs(); break; }
     case 'dbBackup': await api('POST', '/api/db/backup', { engine: $('#dbEngine').value, name: t.dataset.name }); jobDismissed.clear(); setTimeout(loadBackups, 4000); break;
     case 'bkDel':
       if (await ui.confirm({ title: 'Apagar backup', danger: true, okText: 'Apagar', html: `Apagar o arquivo <code>${esc(t.dataset.file)}</code>? Não dá para desfazer.` })) { await api('POST', '/api/db/backup-delete', { engine: t.dataset.engine, file: t.dataset.file }); loadBackups(); ui.toast('Backup apagado.'); }

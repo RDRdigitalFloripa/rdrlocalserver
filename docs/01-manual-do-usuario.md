@@ -1,6 +1,6 @@
 # Manual do usuário
 
-> RDR Local Server v1.12.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.13.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
@@ -71,6 +71,7 @@ No pé do menu há o seletor de **tema**: ☀ Claro, ◐ Automático (segue o Wi
 - **Backup** por banco, lista de backups, **Restaurar** e **Restaurar de um arquivo .sql** (restaurar sobre um banco existente faz backup dele, apaga e recria). Arquivos em `data\backups\<motor>\`.
 - **Backup agendado**: diário/semanal/mensal, horário e quantos manter. Só roda com o RDR Local aberto e o banco ligado; se perder o horário, roda ao abrir. Backups automáticos têm a marca `auto` e só eles são apagados pela retenção.
 - **Conexão**: trecho de `.env` pronto (inclui Meilisearch).
+- **pgvector** (busca vetorial para embeddings de IA, só no PostgreSQL): instale em *Componentes e PHP* (precisa do PostgreSQL já instalado). Depois, na lista de bancos do PostgreSQL, o botão **Ativar pgvector** roda `CREATE EXTENSION vector` naquele banco (ou rode você mesmo, ex.: no Laravel `Schema::ensureVectorExtensionExists()` numa migration). Não precisa reiniciar o PostgreSQL. Bancos com a extensão ativa mostram a marca `pgvector 0.8.7`. Um backup que usa a extensão só é restaurado se o pgvector estiver instalado; sem ele, o RDR Local avisa antes de tocar no banco.
 - **Adminer** (https://db.test) e **phpMyAdmin** (https://pma.test, login automático como root): só respondem para 127.0.0.1.
 
 Portas padrão (diferentes das comuns para conviver com ServBay/XAMPP): MariaDB 3307, PostgreSQL 5433, Redis 6380, Mailpit SMTP 1026 / painel 8026, Meilisearch 7710.
@@ -81,7 +82,7 @@ Roda **um comando por vez** na pasta do projeto, com PHP e Composer do site no P
 
 ## 7. Componentes e PHP
 
-- Instalar/atualizar: Caddy, PHP, Composer, MariaDB, PostgreSQL, Redis, Mailpit, Adminer, phpMyAdmin, Cloudflared, Meilisearch.
+- Instalar/atualizar: Caddy, PHP, Composer, MariaDB, PostgreSQL, pgvector (opcional), Redis, Mailpit, Adminer, phpMyAdmin, Cloudflared, Meilisearch. O pgvector é compilado pelo próprio projeto (o autor não publica binários para Windows), a partir de uma versão fixada, e o arquivo só é usado se o SHA-256 bater com o gravado no RDR Local; serve para o PostgreSQL 16 e 17 e volta sozinho se o PostgreSQL for reinstalado.
 - **Linguagens**: Node.js e Python em várias versões lado a lado (veja o *Guia de linguagens*).
 - **Verificar atualizações**: compara o RDR Local, Caddy, PHP, Node.js, Python, Go, JDK, Composer, phpMyAdmin, Mailpit, Meilisearch, Cloudflared e Adminer com as versões mais novas. O que usa o componente é parado e religado sozinho; o php.ini é mantido. MariaDB e PostgreSQL **não** são atualizados automaticamente (risco para os dados).
 - **Aviso automático**: o RDR Local confere atualizações ao abrir e a cada 6 horas e mostra um número ao lado de *Componentes e PHP*. Nada é instalado sem você clicar. Desligável em *Configurações*.

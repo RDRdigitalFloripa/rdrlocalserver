@@ -1,6 +1,6 @@
 # PRD — Product Requirements Document
 
-**Produto:** RDR Local Server · **Versão:** 1.12.0 · **Responsável:** RDR Digital
+**Produto:** RDR Local Server · **Versão:** 1.13.0 · **Responsável:** RDR Digital
 
 ## 1. Contexto e problema
 

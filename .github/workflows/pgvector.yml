@@ -1,0 +1,81 @@
+# Compila o pgvector (extensão de busca vetorial do PostgreSQL) para o PostgreSQL do RDR Local no Windows.
+#
+# O pgvector não publica binários para Windows; compilamos nós mesmos, a partir de uma tag FIXADA pelo commit,
+# contra o mesmo zip da EDB que o RDR Local instala, e testamos de verdade (sobe o PostgreSQL, CREATE EXTENSION vector,
+# consulta de distância e índice HNSW) antes de guardar o resultado.
+#
+#  - Execução manual (Actions > pgvector (Windows) > Run workflow), sem marcar nada: compila, testa e guarda os zips como
+#    artefato por 7 dias. Não publica nada.
+#  - Com "publicar" marcado: cria a release "pgvector-<tag>-<revisão>" (NÃO é a "latest": o painel continua consultando só
+#    as releases do app) com os zips e os .sha256. Depois, grave os SHA-256 em lib/components.js (PGVECTOR.sha256).
+#
+# Para subir a versão do pgvector, ou refazer o build: troque PGVECTOR_TAG e PGVECTOR_COMMIT (ou REVISAO) aqui e em
+# lib/components.js. Passo a passo: RELEASING.md
+name: pgvector (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: 'Publicar a release com os zips (desmarcado: só compila, testa e guarda como artefato)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  PGVECTOR_TAG: v0.8.7
+  PGVECTOR_COMMIT: f37c13f68b57d2c3472b2214fbcff699d6d34876
+  REVISAO: r1
+
+jobs:
+  compilar:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    permissions:
+      contents: write # criar a release e anexar os arquivos
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Compilar e testar (PostgreSQL 16 e 17)
+        shell: pwsh
+        run: >
+          ./installer/build-pgvector.ps1
+          -PgvectorTag $env:PGVECTOR_TAG -PgvectorCommit $env:PGVECTOR_COMMIT -Revisao $env:REVISAO
+          -Saida ./saida -Alvos '16:16.10-1','17:17.6-1'
+
+      - name: Resumo (SHA-256 para gravar em lib/components.js)
+        shell: pwsh
+        run: |
+          Get-ChildItem ./saida | Format-Table Name, Length
+          Get-Content ./saida/*.sha256
+          Get-Content ./saida/*.sha256 | ForEach-Object { "- ``$_``" } | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Guardar os zips (teste, sem publicar)
+        if: ${{ !inputs.publicar }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pgvector-${{ env.PGVECTOR_TAG }}-${{ env.REVISAO }}
+          path: saida/*
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Publicar a release
+        if: ${{ inputs.publicar }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = "pgvector-$env:PGVECTOR_TAG-$env:REVISAO"
+          $notas = @"
+          pgvector $env:PGVECTOR_TAG compilado para o PostgreSQL 16 e 17 do RDR Local (Windows x64), a partir do commit ``$env:PGVECTOR_COMMIT``.
+
+          Esta release **não é uma versão do RDR Local**: é o arquivo que o painel baixa em *Componentes e PHP* quando você instala o pgvector. O SHA-256 de cada zip fica gravado no código do RDR Local e é conferido antes de usar.
+
+          Licença do pgvector: PostgreSQL License (dentro do zip).
+          "@
+          $arquivos = Get-ChildItem ./saida | ForEach-Object { $_.FullName }
+          gh release create $tag @arquivos --title "pgvector $env:PGVECTOR_TAG ($env:REVISAO) para Windows" --notes $notas --latest=false --target $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'gh release create falhou' }
