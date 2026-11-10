@@ -2,13 +2,14 @@
 
 Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Laravel, apps Node, Python, Go e Java, bancos, e-mail de teste, backups (inclusive na nuvem) e integração com GitHub, importação de outros ambientes e publicação em servidores, tudo em um painel em `http://127.0.0.1:7070` (ou `https://rdr-local-server.local`, com o servidor Web ligado). Zero dependências npm: o próprio Node.js vai embutido no instalador.
 
-> Status: v1.8. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
+> Status: v1.10. Projeto da **RDR Digital**. Uso em desenvolvimento local; veja [SECURITY.md](SECURITY.md).
 
 ## O que faz
 
 - **Sites**: PHP (Caddy + php-cgi), proxy reverso, redirecionamentos e apps supervisionados (Node, Python, Go, Java), cada um com domínio `.local`/`.test` e certificado HTTPS de uma CA local.
 - **Serviços**: MariaDB, PostgreSQL, Redis, Mailpit, Adminer/phpMyAdmin, Meilisearch, Cloudflared.
-- **Projetos**: templates (Laravel, Express/TS, Vite, Next.js, Go, Spring), terminal por site, filas/agendador.
+- **Projetos**: templates (Laravel, Express/TS, Vite, Next.js, Go, Spring), terminal por site, filas/agendador. Todo projeto novo já vem com `CLAUDE.md`, `AGENTS.md` (respostas em português do Brasil) e a pasta `docs/` (documentos `NN-DD-MM-AAAA-nome.md`).
+- **Atualizações**: componentes, linguagens, Composer, phpMyAdmin e o próprio RDR Local (instalador conferido por SHA-256), com verificação automática e selo no menu.
 - **Backup**: bancos agendados, envio para Google Drive/Dropbox/S3/pasta com rclone, criptografia opcional e teste de restauração.
 - **GitHub**: login por Device Flow ou token fine-grained, clonar para um site, estado do Git e atualização segura (`pull --ff-only`).
 - **Importar**: sites e bancos de ServBay, Laragon, XAMPP ou de outro MySQL/MariaDB local, com prévia e conferência.
@@ -40,6 +41,10 @@ Variáveis úteis: `RDR_PORT`, `RDR_HOME`, `RDR_HOSTS`. Detalhes em [docs/02-gui
 
 O painel **não tem autenticação** e escuta só em `127.0.0.1`. Não o exponha na rede nem por túnel. Reporte vulnerabilidades como descrito em [SECURITY.md](SECURITY.md).
 
-## Licença e marca
+## Autoria e licença
 
-Código sob [Apache-2.0](LICENSE). Os componentes de terceiros baixados em tempo de execução mantêm suas próprias licenças: [NOTICE](NOTICE). O nome e o logo "RDR" não estão incluídos na licença: [TRADEMARK.md](TRADEMARK.md).
+Criado e mantido pela **RDR Digital** ([github.com/RDRdigitalFloripa](https://github.com/RDRdigitalFloripa)). O código é aberto sob a [Apache-2.0](LICENSE): você pode baixar, usar (inclusive em trabalho comercial), modificar e redistribuir, **desde que mantenha a atribuição**: entregue uma cópia do `LICENSE`, preserve os avisos de copyright e o arquivo [NOTICE](NOTICE) e indique o que alterou.
+
+Ao publicar um fork ou trabalho derivado, pedimos que cite a origem, por exemplo: *"Baseado no RDR Local Server, da RDR Digital: https://github.com/RDRdigitalFloripa/rdrlocalserver"*.
+
+O nome e o logotipo "RDR" **não** estão incluídos na licença ([TRADEMARK.md](TRADEMARK.md)). Os componentes de terceiros baixados em tempo de execução mantêm suas próprias licenças ([NOTICE](NOTICE)); a licença do Node.js embutido no instalador está em [licenses/Node.js-LICENSE.txt](licenses/Node.js-LICENSE.txt). Resumo em linguagem simples: [docs/13-sobre-e-licenca.md](docs/13-sobre-e-licenca.md).

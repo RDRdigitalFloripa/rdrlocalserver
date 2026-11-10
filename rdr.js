@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver
 'use strict';
 /** CLI do RDR Local: conversa com o painel em execução (http://127.0.0.1:7070). Uso: rdr ajuda */
 const http = require('http');

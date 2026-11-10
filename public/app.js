@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -67,6 +69,7 @@ function go() {
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('on', p.id === 'p-' + page));
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.p === page));
   if (page === 'config') fillSettings();
+  if (page === 'componentes' && S && S.updates && S.updates.pending) checkUpdates(false);
   if (page === 'bancos') { loadDbs(); loadBackups(); }
   if (page === 'diagnostico' && !window._dg) runDoctor();
   if (page === 'terminal') { T.sig = ''; syncTerminalSites(); setTimeout(() => $('#tmIn').focus(), 50); }
@@ -94,6 +97,9 @@ function renderSide() {
   $('#sideFoot').textContent = S.platform === 'win32' ? 'Windows' : `Modo desenvolvimento (${S.platform})`;
   const sv = document.querySelector('.side-ver'); if (sv && S.version) sv.textContent = `RDR LOCAL SERVER v${S.version}`;
   document.querySelectorAll('[data-version]').forEach((e) => { e.textContent = S.version || ''; });
+  const nu = $('#navUpd'); const pend = (S.updates && S.updates.pending) || 0;
+  if (nu) { nu.hidden = !pend; nu.textContent = pend || ''; nu.title = pend ? `${pend} atualização(ões) disponível(is)${S.updates.app ? ' (inclui o RDR Local)' : ''}` : ''; }
+  if (pend && page === 'componentes' && !UPD.auto) { UPD.auto = true; checkUpdates(false); } // página aberta direto: mostra o que está pendente
 }
 
 function renderBanners() {
@@ -203,7 +209,8 @@ function renderRuntimes() {
   const el = $('#rtList'); if (!el || !S.runtimes) return;
   const rows = Object.entries(S.runtimes).flatMap(([rt, r]) => r.installed.map((x) => `<tr><td><b>${esc(r.label)} ${esc(x.v)}</b> <span class="muted small">${esc(x.full)}</span></td><td>${r.default === x.v ? '<span class="chip on">padrão</span> ' : ''}${x.uses ? `<span class="chip">${x.uses} app(s)</span>` : ''}</td>
     <td style="text-align:right">${r.default === x.v ? '' : `<button class="sec sm" data-a="rtDefault" data-rt="${rt}" data-v="${esc(x.v)}">Tornar padrão</button> `}<button class="sec sm" data-a="rtRemove" data-rt="${rt}" data-v="${esc(x.v)}" data-label="${esc(r.label)}">Remover</button></td></tr>`));
-  el.innerHTML = rows.length ? `<table><tbody>${rows.join('')}</tbody></table>` : '<div class="empty">Nenhuma linguagem instalada ainda. Escolha abaixo e clique em “Ver versões disponíveis”.</div>';
+  const missing = Object.entries(S.runtimes).filter(([, r]) => !r.installed.length).map(([rt, r]) => `<tr><td><b>${esc(r.label)}</b></td><td><span class="chip">não instalado</span></td><td style="text-align:right"><button class="sm" data-a="rtLatest" data-rt="${rt}">Instalar versão LTS</button></td></tr>`);
+  el.innerHTML = `<table><tbody>${rows.join('')}${missing.join('')}</tbody></table>`;
 }
 function renderComponents() {
   renderRuntimes();
@@ -332,7 +339,7 @@ function fillSettings() {
   const s = S.settings;
   $('#cfTld').innerHTML = s.tlds.map((t) => `<option ${t === s.tld ? 'selected' : ''}>${t}</option>`).join('');
   $('#cfPanelUrl').innerHTML = s.panelUrl ? 'Endereço amigável do painel: <a href="' + esc(s.panelUrl) + '">' + esc(s.panelUrl) + '</a> (precisa do servidor Web ligado e do DNS local ou hosts). O endereço <code>127.0.0.1:7070</code> continua funcionando sempre.' : '';
-  $('#cfRoot').value = s.projectsRoot || ''; $('#cfDns').checked = !!s.dnsMode; $('#cfAutoSvc').checked = !!s.autoStartServices; loadBoot();
+  $('#cfRoot').value = s.projectsRoot || ''; $('#cfDns').checked = !!s.dnsMode; $('#cfAutoSvc').checked = !!s.autoStartServices; $('#cfDocs').checked = s.projectDocs !== false; $('#cfAutoUpd').checked = s.autoCheckUpdates !== false; loadBoot();
   $('#cfPhp').innerHTML = '<option value="">(primeiro instalado)</option>' + S.php.installed.map((v) => `<option ${v === S.php.default ? 'selected' : ''}>${v}</option>`).join('');
   const labels = { http: 'HTTP', https: 'HTTPS', mariadb: 'MariaDB', postgres: 'PostgreSQL', redis: 'Redis', mailpitSmtp: 'Mailpit SMTP', meilisearch: 'Meilisearch', mailpitUi: 'Mailpit painel' };
   $('#cfPorts').innerHTML = Object.keys(labels).map((k) => `<label>${labels[k]}<input type="number" data-port="${k}" value="${s.ports[k]}"></label>`).join('');
@@ -410,6 +417,10 @@ document.addEventListener('click', async (e) => {
       if (!(await ui.confirm({ title: `Atualizar ${t.dataset.name}`, okText: 'Atualizar', html: `Vai trocar <b>${esc(t.dataset.name)}</b> de ${esc(t.dataset.cur)} para <b>${esc(t.dataset.new)}</b>. O que usa esse componente é parado e religado automaticamente.${t.dataset.id.startsWith('php-') ? ' Seus ajustes do php.ini são mantidos.' : ''} Continuar?` }))) break;
       await api('POST', '/api/updates/apply', { id: t.dataset.id }); jobDismissed.clear(); setTimeout(() => { UPD.done = true; checkUpdates(true); }, 15000); break;
     }
+    case 'appUpdate': {
+      if (!(await ui.confirm({ title: 'Atualizar o RDR Local', okText: 'Baixar e abrir o instalador', html: `Vai baixar a versão <b>${esc(t.dataset.new)}</b>, conferir o SHA-256 e abrir o instalador. Ele <b>encerra o RDR Local</b> (sites e serviços ficam fora do ar até você abrir de novo) e mantém seus dados. Continuar?` }))) break;
+      await api('POST', '/api/updates/app'); jobDismissed.clear(); ui.toast('Baixando… acompanhe no log da tarefa.'); break;
+    }
     case 'phpCfg': await phpOpen(id); break;
     case 'phpTab': phpTab(t.dataset.tab); break;
     case 'open': if (site) window.open(site.url, '_blank'); break;
@@ -419,6 +430,7 @@ document.addEventListener('click', async (e) => {
     case 'apprestart': await api('POST', '/api/apps/ctl', { id, action: 'restart' }); ui.toast('App reiniciado'); break;
     case 'appdeps': await api('POST', '/api/apps/deps', { id }); jobDismissed.clear(); break;
     case 'applog': window._logPick = `app:${id}`; $('#logSel').innerHTML = ''; location.hash = '#logs'; break;
+    case 'rtLatest': await api('POST', '/api/runtimes/install-latest', { rt: t.dataset.rt }); jobDismissed.clear(); ui.toast('Baixando… acompanhe no log da tarefa.'); break;
     case 'rtDefault': await api('POST', '/api/runtimes/default', { rt: t.dataset.rt, version: t.dataset.v }); break;
     case 'rtRemove':
       if (await ui.confirm({ title: 'Remover versão', danger: true, okText: 'Remover', html: `Remover <b>${esc(t.dataset.label)} ${esc(t.dataset.v)}</b> do RDR Local? Os projetos não são tocados; dá para instalar de novo depois.` })) await api('POST', '/api/runtimes/remove', { rt: t.dataset.rt, version: t.dataset.v });
@@ -545,9 +557,13 @@ async function checkUpdates(fresh) {
   const box = $('#updList'); box.innerHTML = 'Verificando…';
   try {
     const r = await api('GET', '/api/updates' + (fresh ? '?fresh=1' : ''), null, true);
-    const rows = r.items.map((i) => `<tr><td><b>${esc(i.name)}</b></td><td>${esc(i.current || '—')}</td><td>${i.updatable ? `<span class="chip warn">${esc(i.latest)} disponível</span>` : '<span class="chip on">em dia</span>'}</td>
+    const a = r.app;
+    const appRow = a ? `<tr><td><b>RDR Local Server</b></td><td>${esc(a.current)}</td><td>${a.updatable ? `<span class="chip warn">${esc(a.latest)} disponível</span>` : '<span class="chip on">em dia</span>'}</td>
+      <td style="text-align:right">${a.updatable ? (a.ready ? `<button class="sm" data-a="appUpdate" data-new="${esc(a.latest)}">Baixar e instalar</button>` : `<a href="${esc(a.url)}" target="_blank" rel="noopener">Ver release</a>`) : ''}</td></tr>` : '';
+    const rows = appRow + r.items.map((i) => `<tr><td><b>${esc(i.name)}</b></td><td>${esc(i.current || '—')}</td><td>${i.updatable ? `<span class="chip warn">${esc(i.latest)} disponível</span>` : '<span class="chip on">em dia</span>'}</td>
       <td style="text-align:right">${i.updatable ? `<button class="sm" data-a="updApply" data-id="${esc(i.id)}" data-name="${esc(i.name)}" data-cur="${esc(i.current)}" data-new="${esc(i.latest)}">Atualizar</button>` : ''}</td></tr>`).join('');
     box.innerHTML = (rows ? `<table><tbody>${rows}</tbody></table>` : '<div class="muted">Nada para verificar.</div>') + (r.errors.length ? `<p class="muted small">Não consegui consultar: ${esc(r.errors.join('; '))}</p>` : '')
+      + (a && !a.latest ? '<p class="muted small">RDR Local: nenhuma versão publicada no GitHub (Releases), ou o repositório é privado.</p>' : '')
       + `<p class="muted small">Verificado às ${new Date(r.checkedAt).toLocaleTimeString('pt-BR')}.</p>`;
   } catch (e) { box.innerHTML = `<span class="muted">${esc(e.message)}</span>`; }
 }
@@ -587,7 +603,7 @@ $('#phpRestore').onclick = act(async () => {
 });
 $('#btnSaveCfg').onclick = act(async () => {
   const ports = {}; document.querySelectorAll('[data-port]').forEach((i) => { ports[i.dataset.port] = i.value; });
-  await api('POST', '/api/settings', { autoStartServices: $('#cfAutoSvc').checked, dnsMode: $('#cfDns').checked, tld: $('#cfTld').value, projectsRoot: $('#cfRoot').value, phpDefault: $('#cfPhp').value, ports });
+  await api('POST', '/api/settings', { autoStartServices: $('#cfAutoSvc').checked, projectDocs: $('#cfDocs').checked, autoCheckUpdates: $('#cfAutoUpd').checked, dnsMode: $('#cfDns').checked, tld: $('#cfTld').value, projectsRoot: $('#cfRoot').value, phpDefault: $('#cfPhp').value, ports });
   ui.toast('Salvo. Reinicie os serviços para aplicar mudanças de porta.');
 });
 
@@ -795,7 +811,7 @@ function applyAppMode() {
   const scaffold = !appEditing && t && t.scaffold;
   $('#lbAppDeps').style.display = appEditing || rt === 'custom' ? 'none' : '';
   const missing = rt !== 'custom' && S.runtimes && !S.runtimes[rt].default;
-  $('#appHint').innerHTML = appEditing ? '' : [t && t.hint ? esc(t.hint) : '', scaffold ? 'Cria os arquivos do modelo, instala as dependências (npm install, venv + pip ou go mod download) e já liga o app com HTTPS.' : '', missing ? `<b style="color:var(--bad)">${esc(S.runtimes[rt].label)} ainda não está instalado:</b> instale em Componentes e PHP &gt; Linguagens antes de criar.` : ''].filter(Boolean).join('<br>');
+  $('#appHint').innerHTML = appEditing ? '' : [t && t.hint ? esc(t.hint) : '', scaffold ? 'Cria os arquivos do modelo, instala as dependências (npm install, venv + pip ou go mod download) e já liga o app com HTTPS.' : '', missing ? `<b>${esc(S.runtimes[rt].label)} ainda não está instalado:</b> será baixado sozinho (versão LTS mais nova) ao criar o app, ou instale antes em Componentes e PHP &gt; Linguagens.` : ''].filter(Boolean).join('<br>');
   $('#appSubmit').textContent = appEditing ? 'Salvar' : 'Criar app';
 }
 async function openAppDlg(site) {
@@ -1065,7 +1081,7 @@ async function loadPb() {
   const keyName = (id) => (PB.keys.find((k) => k.id === id) || {}).label || '—';
   $('#pbServers').innerHTML = PB.servers.length ? PB.servers.map((s) => `<div class="pb-srv"><div class="row" style="justify-content:space-between;gap:8px"><b>${esc(s.name)}</b>${s.trusted ? '<span class="chip on" title="Identidade confirmada">confirmado</span>' : '<span class="chip warn">confirmar identidade</span>'}</div><small class="muted">${esc(s.user)}@${esc(s.host)}${s.port !== 22 ? ':' + s.port : ''} · chave ${esc(keyName(s.keyId))}${s.group ? ' · ' + esc(s.group) : ''}</small><div class="acts">${s.trusted ? `<button class="sm" data-pt="${s.id}">Testar</button>` : `<button class="sm" data-pp="${s.id}">Confirmar identidade</button>`}<button class="sec sm" data-pe="${s.id}">Editar</button><button class="sec sm" data-pd="${s.id}">Remover</button></div></div>`).join('') : '<div class="empty">Nenhum servidor. Gere uma chave e cadastre o primeiro.</div>';
   const srvName = (id) => (PB.servers.find((s) => s.id === id) || {}).name || '—';
-  $('#pbRecipes').innerHTML = PB.recipes.length ? '<table><tbody>' + PB.recipes.map((r) => `<tr><td><b>${esc(r.name)}</b><small>→ ${esc(srvName(r.serverId))} · ${r.steps.length} passo(s)${r.last ? ' · último: ' + (r.last.ok ? '✔' : '✖') + ' ' + esc(r.last.msg) : ''}</small></td><td style="text-align:right;white-space:nowrap"><button class="sm" data-rp="${r.id}">Publicar</button> <button class="sec sm" data-re="${r.id}">Editar</button> <button class="sec sm" data-rd="${r.id}">Remover</button></td></tr>`).join('') + '</tbody></table>' : '<div class="empty">Nenhuma receita ainda.</div>';
+  $('#pbRecipes').innerHTML = PB.recipes.length ? '<table><tbody>' + PB.recipes.map((r) => `<tr><td><b>${esc(r.name)}</b><small>→ ${esc(srvName(r.serverId))} · ${r.steps.length} passo(s)${r.last ? ' · último: ' + (r.last.ok ? '✔' : '✖') + ' ' + esc(r.last.msg) : ''}</small></td><td style="text-align:right;white-space:nowrap"><button class="sm" data-rp="${r.id}">Publicar</button> ${(r.rollback || []).length ? `<button class="sec sm" data-rr="${r.id}" title="Volta o serviço à versão anterior">Reverter</button> ` : ''}<button class="sec sm" data-re="${r.id}">Editar</button> <button class="sec sm" data-rd="${r.id}">Remover</button></td></tr>`).join('') + '</tbody></table>' : '<div class="empty">Nenhuma receita ainda.</div>';
   $('#pbKeys').innerHTML = PB.keys.length ? '<table><tbody>' + PB.keys.map((k) => `<tr><td><b>${esc(k.label)}</b><small>${esc(k.fingerprint)}${k.usedBy.length ? ' · usada por ' + esc(k.usedBy.join(', ')) : ''}</small></td><td style="text-align:right;white-space:nowrap"><button class="sec sm" data-kc="${k.id}">Copiar pública</button> <button class="sec sm" data-kd="${k.id}">Remover</button></td></tr>`).join('') + '</tbody></table>' : '<div class="empty">Nenhuma chave. Clique em “Gerar chave”.</div>';
 }
 function pbKeyOptions(sel) { $('#pbSrvForm').keyId.innerHTML = PB.keys.map((k) => `<option value="${k.id}">${esc(k.label)}</option>`).join(''); if (sel) $('#pbSrvForm').keyId.value = sel; }
@@ -1108,7 +1124,7 @@ function pbRcOpen(r) {
   const f = $('#pbRcForm'); f.reset(); pbEditing = r ? r.id : null; $('#pbRcTitle').textContent = r ? 'Editar receita' : 'Nova receita';
   f.serverId.innerHTML = PB.servers.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   f.siteId.innerHTML = '<option value="">— nenhum —</option>' + (S ? S.sites : []).filter((x) => x.path).map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-  if (r) { f.name.value = r.name; f.serverId.value = r.serverId; f.siteId.value = r.siteId || ''; f.branch.value = r.branch; f.mode.value = 'custom'; f.cmds.value = r.steps.map((x) => x.cmd).join('\n'); f.checkBuild.checked = !!r.checkBuild; } else f.mode.value = 'swarm';
+  if (r) { f.name.value = r.name; f.serverId.value = r.serverId; f.siteId.value = r.siteId || ''; f.branch.value = r.branch; f.mode.value = 'custom'; f.cmds.value = r.steps.map((x) => x.cmd).join('\n'); f.rollback.value = (r.rollback || []).map((x) => x.cmd).join('\n'); f.checkBuild.checked = !!r.checkBuild; } else f.mode.value = 'swarm';
   pbRcMode(); $('#pbRcDlg').showModal();
 }
 $('#pbAddRc').onclick = () => { if (!PB || !PB.servers.length) { ui.alert({ title: 'Cadastre um servidor', message: 'Crie um servidor antes de criar receitas.', tone: 'warn' }); return; } pbRcOpen(null); };
@@ -1116,7 +1132,7 @@ $('#pbRcCancel').onclick = () => $('#pbRcDlg').close();
 $('#pbRcForm').onsubmit = async (e) => {
   e.preventDefault(); const f = e.target; const body = { id: pbEditing, name: f.name.value, serverId: f.serverId.value, siteId: f.siteId.value, branch: f.branch.value, checkBuild: f.checkBuild.checked };
   const lines = (t) => t.split('\n').map((x) => x.trim()).filter(Boolean).map((cmd) => ({ cmd }));
-  if (f.mode.value === 'swarm') body.swarm = { image: f.image.value.trim(), services: f.services.value, extra: lines(f.extra.value) }; else body.steps = lines(f.cmds.value);
+  if (f.mode.value === 'swarm') body.swarm = { image: f.image.value.trim(), services: f.services.value, extra: lines(f.extra.value) }; else { body.steps = lines(f.cmds.value); body.rollback = lines(f.rollback.value); }
   try { await api('POST', '/api/deploy/recipe/save', body); $('#pbRcDlg').close(); loadPb(); } catch (_) { /* alerta */ }
 };
 async function pbPublish(id) {
@@ -1136,7 +1152,7 @@ $('#pbPubRun').onclick = async (e) => {
   try { await api('POST', '/api/deploy/recipe/publish', { id: pbCur, force }); $('#pbPubDlg').close(); jobDismissed.clear(); ui.toast('Publicando… acompanhe no log da tarefa.'); refresh(); setTimeout(loadPb, 6000); } catch (_) { /* alerta */ }
 };
 document.addEventListener('click', async (e) => {
-  const t = e.target.closest('[data-pt],[data-pp],[data-pe],[data-pd],[data-rp],[data-re],[data-rd],[data-kc],[data-kd]'); if (!t || !PB) return;
+  const t = e.target.closest('[data-pt],[data-pp],[data-pe],[data-pd],[data-rp],[data-rr],[data-re],[data-rd],[data-kc],[data-kd]'); if (!t || !PB) return;
   const d = t.dataset;
   try {
     if (d.pt) { t.disabled = true; await pbTest(d.pt); t.disabled = false; }
@@ -1144,6 +1160,7 @@ document.addEventListener('click', async (e) => {
     else if (d.pe) { const s = PB.servers.find((x) => x.id === d.pe); pbEditing = s.id; $('#pbSrvTitle').textContent = 'Editar servidor'; const f = $('#pbSrvForm'); f.name.value = s.name; f.group.value = s.group; f.host.value = s.host; f.port.value = s.port; f.user.value = s.user; pbKeyOptions(s.keyId); $('#pbSrvDlg').showModal(); }
     else if (d.pd) { if (await ui.confirm({ title: 'Remover servidor', danger: true, okText: 'Remover', html: 'Remove só o cadastro daqui. Nada muda no servidor.' })) { await api('POST', '/api/deploy/server/remove', { id: d.pd }); loadPb(); } }
     else if (d.rp) await pbPublish(d.rp);
+    else if (d.rr) { const r = PB.recipes.find((x) => x.id === d.rr); if (await ui.confirm({ title: 'Reverter: ' + r.name, danger: true, okText: 'Reverter agora', html: 'Vai rodar no servidor:<br><code style="white-space:pre-wrap;word-break:break-all">' + esc(r.rollback.map((x) => x.cmd).join('\n')) + '</code><br><br>No Swarm isso volta cada serviço à especificação <b>anterior</b> (um nível só). Passos extras da receita, como migrações de banco, <b>não</b> são desfeitos.' })) { await api('POST', '/api/deploy/recipe/rollback', { id: d.rr }); jobDismissed.clear(); ui.toast('Revertendo… acompanhe no log da tarefa.'); refresh(); setTimeout(loadPb, 6000); } }
     else if (d.re) pbRcOpen(PB.recipes.find((x) => x.id === d.re));
     else if (d.rd) { if (await ui.confirm({ title: 'Remover receita', danger: true, okText: 'Remover', html: 'Remove só a receita.' })) { await api('POST', '/api/deploy/recipe/remove', { id: d.rd }); loadPb(); } }
     else if (d.kc) { const k = PB.keys.find((x) => x.id === d.kc); try { await navigator.clipboard.writeText(k.pub); ui.toast('Chave pública copiada'); } catch (_) { await ui.alert({ title: 'Chave pública', tone: 'info', pre: k.pub }); } }

@@ -16,6 +16,9 @@ docker service update --with-registry-auth --image <IMAGEM> <SERVICO>
 
 Você pode acrescentar passos extras (ex.: `docker service ps <SERVICO>`).
 
+## Reverter
+Receitas Swarm ganham o botão **Reverter**: roda `docker service rollback <serviço>` em cada serviço e volta à especificação **anterior** (só um nível; depois de reverter, outra reversão volta para a versão que você acabou de sair). Passos extras da receita (migrações, `artisan`) **não** são desfeitos. Em receitas de comandos próprios, preencha "Comandos de reversão" para habilitar o botão. Sempre pede confirmação e mostra os comandos.
+
 ## Verificação antes de publicar
 Ligue a receita a um site (clonado do GitHub). A pré-verificação confere:
 - servidor com identidade confirmada (bloqueia);

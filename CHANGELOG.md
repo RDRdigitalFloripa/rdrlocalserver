@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.10.0
+- Projetos novos (Laravel, WordPress, pasta PHP e apps criados a partir de modelo ou em pasta nova) já nascem com `CLAUDE.md`, `AGENTS.md` e a pasta `docs/`. Os dois arquivos trazem a regra "Sempre forneça as respostas em português do Brasil", a orientação do padrão de nome dos documentos (`NN-DD-MM-AAAA-nome.md`, ex.: `01-10-10-2026-arquivo.md`) e os dados do ambiente local (endereço, banco, e-mail de teste). A `docs/` recebe `01-DD-MM-AAAA-visao-geral.md`. Nunca sobrescreve arquivo existente; não mexe em clonados, importados nem em "pasta que já tem um app". Desligável em Configurações.
+- O Caddy não serve `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` quando esses arquivos existem na pasta pública (WordPress, pasta PHP, túnel público). Rotas de aplicação com esses caminhos (ex.: `/docs` do Laravel) continuam funcionando.
+- Atualização do próprio RDR Local pelo painel (Componentes e PHP → Verificar atualizações): consulta a última release do GitHub, baixa o instalador, confere o SHA-256 publicado junto (`.sha256`) e abre o assistente. Recusa qualquer endereço fora de `github.com/…/releases/download`. Precisa de release com `RDR-Local-Setup-<versão>.exe` e `.sha256` em repositório público.
+- Verificação automática de atualizações 30 s depois de abrir e a cada 6 horas (desligável em Configurações), com selo numérico em "Componentes e PHP". Não instala nada sozinha.
+- A lista de atualizações passou a incluir Composer e phpMyAdmin.
+
+## 1.9.2
+- Componentes e PHP → Linguagens: cada linguagem não instalada (Node, Python, Go, JDK) ganha uma linha com o botão "Instalar versão LTS" (antes o JDK só aparecia depois de "Ver versões disponíveis").
+- Lista de versões do JDK agora mostra o erro real quando não consegue falar com api.adoptium.net, em vez de ficar vazia.
+
+## 1.9.1
+- Criar app (Java, Node, Python, Go): se a linguagem não estiver instalada, o RDR Local baixa a versão LTS mais nova sozinho dentro da tarefa de criação (antes só avisava para instalar em outra tela). Projeto Spring Boot passa a usar o JDK instalado como alvo (17, 21 ou 25).
+
+## 1.9.0
+- Publicar: botão **Reverter** (Swarm: `docker service rollback` por serviço; comandos de reversão próprios nas outras receitas), sempre com confirmação.
+- Correção: receita Swarm sem passos extras dava erro ao salvar.
+
 ## 1.8.3
 - Documentação atualizada (README, manual, instalação, PRD, SDD, API, solução de problemas, segurança, GitHub e Publicar).
 

@@ -1,8 +1,14 @@
 RDR Local Server
 Copyright 2026 RDR Digital
+Criado e mantido pela RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver - contato@rdrdigital.com.br
+
 Licenciado sob a Apache License 2.0 (veja LICENSE).
 
-O instalador inclui o Node.js (licença MIT). Os componentes abaixo NÃO fazem parte do código deste repositório:
+Atribuição: quem redistribuir este software, com ou sem modificações, deve entregar uma cópia do arquivo LICENSE, manter os avisos
+de copyright e este arquivo NOTICE e indicar de forma visível os arquivos que alterou (Apache License 2.0, seção 4).
+O nome e o logotipo "RDR" não são licenciados (veja TRADEMARK.md).
+
+O instalador inclui o Node.js (licença MIT; texto completo em licenses/Node.js-LICENSE.txt). Os componentes abaixo NÃO fazem parte do código deste repositório:
 são baixados de suas fontes oficiais, em tempo de execução, quando você os instala, e mantêm suas próprias licenças.
 
 Caddy (Apache-2.0) · PHP (PHP License) · Composer (MIT) · MariaDB (GPL-2.0) · PostgreSQL (PostgreSQL License)

@@ -1,9 +1,9 @@
 RDR Local - ambiente local de hospedagem com HTTPS (estilo ServBay / Laragon)
 
 INSTALADOR (recomendado)
-Execute RDR-Local-Setup-1.8.3.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
+Execute RDR-Local-Setup-1.10.0.exe. Instala o programa em C:\Program Files\RDR Local (com Node.js embutido) e os dados em
 C:\ProgramData\RDRLocal. Roda em segundo plano com icone perto do relogio (Abrir painel, Reiniciar, Sair); fechar navegador ou
-janelas nao derruba nada, e se o painel cair o icone o religa. Opcao de iniciar com o Windows. Atualizar = rodar o novo instalador por cima.
+janelas nao derruba nada, e se o painel cair o icone o religa. Opcao de iniciar com o Windows. Atualizar = rodar o novo instalador por cima (ou pelo painel: Componentes e PHP > Verificar atualizacoes > RDR Local Server > Baixar e instalar).
 Gerar o instalador: bash installer/build.sh (precisa de nsis e npm). Detalhes na Ajuda > Guia de instalacao.
 
 COMO USAR (modo desenvolvimento, sem instalador)
@@ -62,7 +62,8 @@ O QUE TEM
   Nada destrutivo. O terminal (rdr_terminal) so existe se voce usar o JSON "com terminal liberado" (RDR_MCP_ALLOW_SHELL=1).
 - Variaveis de ambiente por site (Editar site, para sites com pasta): uma por linha, CHAVE=valor. Valem para o PHP do site, o terminal e os comandos
   do painel, e vencem o .env. Reinicie o Servidor Web para aplicar. Ficam em config\config.json (texto puro): nao guarde segredos de producao.
-- Atualizacoes (Componentes e PHP > Verificar atualizacoes): Caddy, PHP (por versao), Mailpit, Meilisearch, Cloudflared e Adminer. O que usa o
+- Atualizacoes (Componentes e PHP > Verificar atualizacoes): o proprio RDR Local, Caddy, PHP (por versao), Node/Python/Go/JDK, Composer, phpMyAdmin,
+  Mailpit, Meilisearch, Cloudflared e Adminer. A verificacao tambem roda sozinha a cada 6 horas (selo no menu; desligavel em Configuracoes). O que usa o
   componente e parado e religado sozinho; o php.ini e mantido. MariaDB e PostgreSQL nao sao atualizados automaticamente (risco para seus dados).
 - Backup e restauracao (aba Bancos): botao Backup por banco, lista de backups, Restaurar e "Restaurar de um arquivo .sql".
   Ao excluir um banco, um backup automatico e salvo antes. Arquivos em data\backups\<motor>\.

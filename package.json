@@ -1,10 +1,13 @@
 {
   "name": "rdr-local",
-  "version": "1.8.3",
+  "version": "1.10.0",
   "description": "RDR Local Server - ambiente local de hospedagem com HTTPS (Windows)",
   "private": true,
   "license": "Apache-2.0",
-  "author": "RDR Digital",
+  "author": "RDR Digital <contato@rdrdigital.com.br> (https://github.com/RDRdigitalFloripa)",
+  "homepage": "https://github.com/RDRdigitalFloripa/rdrlocalserver#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/RDRdigitalFloripa/rdrlocalserver.git" },
+  "bugs": { "url": "https://github.com/RDRdigitalFloripa/rdrlocalserver/issues" },
   "engines": { "node": ">=18" },
   "scripts": { "start": "node server.js", "build:installer": "bash installer/build.sh" }
 }

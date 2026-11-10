@@ -26,7 +26,7 @@ Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 
 | Grupo | Rotas |
 |---|---|
 | Estado | `GET /api/state`, `/api/host-status` (CPU/memória/disco; `/api/metrics` é o nome antigo), `/api/log`, `/api/hosts-text` |
-| Serviços | `POST /api/svc`, `/api/install`, `/api/install-all`, `/api/trust`, `/api/settings` |
+| Serviços | `POST /api/svc`, `/api/install`, `/api/install-all`, `/api/trust`, `/api/settings` (inclui `projectDocs` e `autoCheckUpdates`) |
 | Apps | `POST /api/apps/new` (cria arquivos do modelo + deps + site), `/api/apps/ctl` (`start`\|`stop`\|`restart`), `/api/apps/deps`; `GET /api/apps/detect?path=`, `/api/apps/templates` |
 | Linguagens | `GET /api/runtimes/available?rt=node\|python\|go\|java`; `POST /api/runtimes/install`, `/api/runtimes/default`, `/api/runtimes/remove` |
 | Sites | `POST /api/sites`, `/api/sites/update`, `/api/sites/remove`, `/api/sites/toggle`, `/api/sites/artisan`, `/api/sites/proc`, `/api/sites/terminal`, `/api/sites/folder`, `/api/scan`, `/api/project` |
@@ -36,12 +36,12 @@ Base: `http://127.0.0.1:7070`. Requisições `POST` exigem o cabeçalho `X-RDR: 
 | GitHub e Git | `GET /api/github` (nunca devolve o token); `POST /api/github/config`, `/device-start`, `/device-poll`, `/token`, `/disconnect`, `/clone`; `GET /api/github/repos?q=`; `GET /api/git/status`; `POST /api/git/fetch`, `/api/git/pull` |
 | Importação | `GET /api/import/sources`; `POST /api/import/scan` (`kind`, `path`); `POST /api/import/run` (`kind`, `path`, `keys`) |
 | Importar bancos | `GET /api/dbimport/ports`; `POST /api/dbimport/probe` (`port`, `user`, `password`); `POST /api/dbimport/run` (`port`, `user`, `password`, `items[{name,target,overwrite}]`). A senha nunca é gravada nem registrada em log |
-| Publicar (SSH) | `GET /api/deploy` (nunca devolve chaves privadas); `POST /api/deploy/key/generate`, `/key/import`, `/key/remove`; `/server/save`, `/server/remove`, `/server/probe`, `/server/trust` (impressão digital), `/server/test`; `/recipe/save`, `/recipe/remove`, `/recipe/precheck`, `/recipe/publish` (`id`, `force`) |
+| Publicar (SSH) | `GET /api/deploy` (nunca devolve chaves privadas); `POST /api/deploy/key/generate`, `/key/import`, `/key/remove`; `/server/save`, `/server/remove`, `/server/probe`, `/server/trust` (impressão digital), `/server/test`; `/recipe/save`, `/recipe/remove`, `/recipe/precheck`, `/recipe/publish` (`id`, `force`), `/recipe/rollback` (`id`) |
 | Publicar (FTP/SFTP) | `GET /api/ftp` (nunca devolve senhas); `POST /api/ftp/save`, `/remove`, `/test`, `/plan` (prévia), `/baseline`, `/publish` (`id`, `confirmFirst`, `deleteRemoved`) |
 | Backup agendado | `POST /api/backup/schedule`, `/api/backup/run-all` |
 | PHP | `GET /api/php/available`, `/api/php/ini`; `POST /api/php/ext`, `/api/php/settings`, `/api/php/ini-raw`, `/api/php/ini-restore` |
 | Diagnóstico | `GET /api/doctor`; `POST /api/doctor/fix` |
-| Atualizações | `GET /api/updates` (cache de 10 min); `POST /api/updates/apply` |
+| Atualizações | `GET /api/updates` (cache de 10 min; `?fresh=1` força; devolve `items`, `errors`, `app` e `checkedAt`); `POST /api/updates/apply` (`id`); `POST /api/updates/app` (baixa o instalador da última release, confere o SHA-256 e o abre). `GET /api/state` traz `updates.pending` (selo do menu) |
 | Inicialização | `GET/POST /api/autostart` |
 | Encerramento | `POST /api/quit` (desliga serviços e fecha o painel; usado pela bandeja e pelo instalador) |
 | Configuração | `GET /api/config/export`; `POST /api/config/import`; `GET /api/mcp-config` |

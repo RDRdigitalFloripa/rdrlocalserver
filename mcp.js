@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver
 'use strict';
 /**
  * Servidor MCP (stdio) do RDR Local — deixa Claude, Cursor, Codex etc. consultarem e controlarem o ambiente local.

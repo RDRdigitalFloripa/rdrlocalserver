@@ -1,6 +1,6 @@
 # Manual do usuário
 
-> RDR Local Server v1.8.3 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
+> RDR Local Server v1.10.0 — ambiente local de hospedagem com HTTPS para Windows. Desenvolvido por RDR Digital.
 
 ## 1. O que é
 
@@ -38,6 +38,7 @@ O RDR Local roda no seu PC os mesmos blocos que você usa em produção: servido
 - **WordPress novo** (pt-BR), **pasta PHP vazia** ou **pasta já existente** (com aliases e pasta pública).
 - **Banco**: MariaDB/MySQL ou PostgreSQL (o PostgreSQL é instalado e iniciado se preciso).
 - **Escanear pasta**: cada subpasta da raiz de projetos vira um site.
+- **CLAUDE.md, AGENTS.md e docs/**: todo projeto novo (Laravel, WordPress, pasta PHP e app) já vem com esses dois arquivos de instruções para agentes de IA e a pasta `docs/`. Os arquivos mandam responder **sempre em português do Brasil**, explicam o padrão de nome dos documentos (`NN-DD-MM-AAAA-nome.md`, por exemplo `01-10-10-2026-arquivo.md`) e registram o ambiente (endereço, banco, e-mail de teste). A `docs/` já recebe `01-<data>-visao-geral.md`. Arquivos que já existem nunca são sobrescritos; projetos clonados do GitHub, importados ou em "pasta que já tem um app" não recebem nada. O Caddy não serve esses arquivos no navegador. Dá para desligar em *Configurações*.
 
 ### Tipos de site
 - **PHP** (padrão): serve a pasta com a versão de PHP escolhida; detecta Laravel/WordPress e a pasta pública.
@@ -77,12 +78,15 @@ Roda **um comando por vez** na pasta do projeto, com PHP e Composer do site no P
 
 - Instalar/atualizar: Caddy, PHP, Composer, MariaDB, PostgreSQL, Redis, Mailpit, Adminer, phpMyAdmin, Cloudflared, Meilisearch.
 - **Linguagens**: Node.js e Python em várias versões lado a lado (veja o *Guia de linguagens*).
-- **Verificar atualizações**: o que usa o componente é parado e religado sozinho; o php.ini é mantido. MariaDB e PostgreSQL **não** são atualizados automaticamente (risco para os dados).
+- **Verificar atualizações**: compara o RDR Local, Caddy, PHP, Node.js, Python, Go, JDK, Composer, phpMyAdmin, Mailpit, Meilisearch, Cloudflared e Adminer com as versões mais novas. O que usa o componente é parado e religado sozinho; o php.ini é mantido. MariaDB e PostgreSQL **não** são atualizados automaticamente (risco para os dados).
+- **Aviso automático**: o RDR Local confere atualizações ao abrir e a cada 6 horas e mostra um número ao lado de *Componentes e PHP*. Nada é instalado sem você clicar. Desligável em *Configurações*.
+- **Atualizar o próprio RDR Local**: na linha *RDR Local Server*, **Baixar e instalar** baixa o instalador da última versão, confere o SHA-256 e abre o assistente (ele encerra o programa, troca os arquivos e mantém seus dados). Só aparece quando existe uma versão publicada nas Releases do GitHub.
 - **Editor do PHP** (Configurar, por versão): ajustes comuns (memória, upload, fuso, erros, OPcache), liga/desliga extensões e edita o php.ini inteiro. Toda alteração é testada; se o PHP reclamar, volta como estava. Há backup `php.ini.bak`. Extensões desligadas por você não são religadas.
 
 ## 8. Configurações
 
 - **Terminação dos domínios** (`.test`, `.local`, `.host`, `.localhost`), pasta raiz de projetos, PHP padrão.
+- **Projetos novos com CLAUDE.md, AGENTS.md e docs/** (ligado por padrão) e **Verificar atualizações automaticamente** (ligado por padrão).
 - **Inicialização**: abrir com o Windows (tarefa agendada, exige Administrador uma vez) e ligar serviços automaticamente.
 - **DNS local**: resolve `*.test` para 127.0.0.1 (porta 53/UDP; cria regra NRPT só para o domínio e remove ao parar).
 - **Portas** de todos os serviços.

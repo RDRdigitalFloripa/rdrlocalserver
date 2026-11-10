@@ -1,6 +1,6 @@
 # SDD — Software Design Document
 
-**Produto:** RDR Local Server v1.8.3
+**Produto:** RDR Local Server v1.10.0
 
 ## 1. Visão geral da arquitetura
 
@@ -41,7 +41,9 @@ Um único processo Node (`server.js`, sem dependências npm) serve a interface e
 | `importer.js` / `dbimport.js` | Leitura de vhosts nginx/Apache (ServBay/Laragon/XAMPP) e importação de bancos de outro MySQL/MariaDB com ajuste de collations |
 | `deploy.js` | Servidores SSH, chaves cifradas, known_hosts próprio, receitas (modelo Swarm), pré-verificação e publicação |
 | `ftp.js` | Publicação FTP/FTPS (curl.exe) e SFTP (sftp.exe): manifesto SHA-1, prévia, exclusões, `.env` nunca enviado |
-| `updates.js` | Verificação e aplicação de atualizações |
+| `updates.js` | Verificação (componentes, linguagens, Composer, phpMyAdmin e o próprio app), cache de 10 min, verificação automática a cada 6 h (`startAuto`), resumo sem rede para o selo (`summary`) e aplicação |
+| `appupdate.js` | Atualização do próprio RDR Local: última release do GitHub, download, SHA-256 e abertura do instalador |
+| `aifiles.js` | `CLAUDE.md`, `AGENTS.md` e `docs/` em projetos novos (nunca sobrescreve; desligável) |
 | `sysinfo.js` | Métricas de CPU, memória e disco |
 
 Fora de `lib/`: `rdr.js` (CLI), `mcp.js` (servidor MCP stdio), `start.bat` (modo desenvolvimento) e `start-silent.vbs` (gerado em execução).
@@ -71,7 +73,7 @@ Persistência em `config/config.json` (texto puro). Campos principais:
   "v": 2, "tld": "test", "projectsRoot": "E:\\www", "phpDefault": "8.4",
   "ports": { "http": 80, "https": 443, "mariadb": 3307, "postgres": 5433,
              "redis": 6380, "mailpitSmtp": 1026, "mailpitUi": 8026, "meilisearch": 7710 },
-  "autoStartServices": false, "dnsMode": false,
+  "autoStartServices": false, "dnsMode": false, "projectDocs": true, "autoCheckUpdates": true,
   "github": { "clientId": "", "privateRepos": false },
   "servers": [], "sshKeys": [], "recipes": [], "ftpTargets": [],
   "backup": { "enabled": false, "freq": "daily", "time": "03:00", "keep": 7, "last": 0, "lastMsg": "" },
@@ -100,11 +102,15 @@ Persistência em `config/config.json` (texto puro). Campos principais:
 
 **Backup na nuvem:** `runAll()` (backup agendado) → `cloud.sync()` → `rclone copy` dos dumps (`db/`), da configuração sem segredos (`config/`) e, se ligado, de `.env` + `storage/app` dos projetos (`projects/<domínio>/`), por filtros explícitos. Com criptografia, o destino efetivo é o remote `crypt` sobre `<pasta>/encrypted`; o sal vem da própria senha (scrypt), então a mesma senha reabre os backups em outro PC. A retenção remota só apaga se houver backup recente (`lsjson --max-age`). O resultado vai para `cfg.cloud.last*` e, em falha, para `notify.event`.
 
-**Publicar (receita):** `precheck` (identidade do servidor, commits não enviados, build do Actions) → prévia dos comandos → `publish`: cada passo roda por `ssh` (chave temporária 0600, `StrictHostKeyChecking=yes`, known_hosts próprio), para no primeiro erro, grava `last` e avisa por Telegram/webhook.
+**Publicar (receita):** `precheck` (identidade do servidor, commits não enviados, build do Actions) → prévia dos comandos → `publish`: cada passo roda por `ssh` (chave temporária 0600, `StrictHostKeyChecking=yes`, known_hosts próprio), para no primeiro erro, grava `last` e avisa por Telegram/webhook. **Reverter** roda `rollback` da receita (no Swarm, `docker service rollback` por serviço) pelo mesmo caminho.
 
 **Publicar (FTP/SFTP):** varredura local (exclusões + `.env` nunca) → hash SHA-1 → comparação com o manifesto em `data/ftp/<id>.json` → prévia (novos/alterados/removidos) → envio em lotes de 40 → manifesto gravado a cada lote → exclusão remota só com confirmação. A senha FTP vai ao curl por stdin (`-K -`).
 
 **Painel por nome:** o Caddy publica `rdr-local-server.<tld>` com `reverse_proxy` para o painel (somente `remote_ip` local).
+
+**Projeto novo:** ao final da criação (Laravel, WordPress, pasta PHP: `projects.js`; app em pasta nova ou de modelo: `POST /api/apps/new`), `aifiles.scaffold()` grava `CLAUDE.md` e `AGENTS.md` (mesmo texto) e, se a `docs/` estiver vazia, `docs/01-DD-MM-AAAA-visao-geral.md`. Roda **depois** de `composer create-project`, do modelo e do `unzip` do Spring (que recria a pasta), nunca sobrescreve e não derruba a criação se falhar (só registra no log). Não roda em clonagem do GitHub, importação nem "pasta que já tem um app", para não sujar a árvore do Git (o `pull --ff-only` recusa árvore suja). Nos sites PHP o Caddy responde 404 a `/docs/*`, `/CLAUDE.md` e `/AGENTS.md` só quando o arquivo existe na pasta pública (`file` matcher), para não quebrar rotas como `/docs` do Laravel.
+
+**Atualizar o RDR Local:** `updates.check()` consulta `releases/latest` do repositório (`appupdate.REPO`); 404 = sem release/privado = "em dia". `POST /api/updates/app` (tarefa) baixa `RDR-Local-Setup-<versão>.exe` e o `.sha256` da mesma release, aceita só URLs `https://github.com/<repo>/releases/download/…`, compara o SHA-256 e abre o instalador com `cmd /c start` (UAC se preciso). Não instala em silêncio; o instalador encerra o programa antigo (`stop.ps1`) e mantém os dados. O instalador ainda não tem assinatura digital: o SmartScreen pode avisar. Exige repositório público (a consulta não usa token).
 
 ## 5. API HTTP
 
@@ -117,7 +123,7 @@ Todas as rotas sob `/api/`, JSON. Resumo em *Referência: CLI, API e MCP*.
 3. POST sem `X-RDR: 1` → 403 (anti-CSRF; um site malicioso não consegue enviar o cabeçalho customizado sem preflight).
 4. Corpo limitado a 100 KB; nomes de banco restritos a letras/números/`_`.
 5. Arquivos estáticos protegidos contra *path traversal*; a Ajuda lê apenas arquivos `.md` da pasta `docs/`.
-6. Caddy bloqueia `/.env`, `/.git`, `/storage/logs`; Adminer/phpMyAdmin só para 127.0.0.1.
+6. Caddy bloqueia `/.env`, `/.git`, `/storage/logs` e, se existirem na pasta pública, `/docs/*`, `/CLAUDE.md`, `/AGENTS.md`; Adminer/phpMyAdmin só para 127.0.0.1.
 7. MCP sem ferramentas destrutivas; terminal só com `RDR_MCP_ALLOW_SHELL=1`.
 8. Publicar: só executa comandos de receitas; chaves SSH e senhas FTP cifradas com DPAPI; impressão digital do servidor confirmada pelo usuário; `.env` nunca enviado por FTP; exclusão remota só com confirmação.
 9. Limitações conhecidas: sem autenticação no painel (confia na máquina), segredos de env em texto puro, bancos sem senha (apenas localhost).

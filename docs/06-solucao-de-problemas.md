@@ -103,3 +103,6 @@ O RDR guarda o que enviou em `data\ftp\<destino>.json`. Se a pasta do servidor j
 
 ## O Importar não achou meus sites
 Aponte a pasta ou o arquivo de configuração (nginx/Apache) manualmente. Veja o guia *Importar sites* para as pastas e formatos aceitos.
+
+## Reverter não aparece / reverteu para a versão errada
+O botão só existe em receitas com comandos de reversão (Swarm: automático; comandos próprios: preencha o campo). `docker service rollback` volta **uma** especificação; se você publicou duas vezes, volta para a penúltima. Para uma versão específica, edite a receita com a tag da imagem desejada e publique.

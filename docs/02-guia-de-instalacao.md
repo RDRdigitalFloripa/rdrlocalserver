@@ -2,7 +2,7 @@
 
 ## Instalação com o instalador (recomendado)
 
-1. Execute `RDR-Local-Setup-1.8.3.exe` (aceite o pedido de Administrador). O Node.js já vai embutido: não precisa instalar nada antes.
+1. Execute `RDR-Local-Setup-1.10.0.exe` (aceite o pedido de Administrador). O Node.js já vai embutido: não precisa instalar nada antes.
 2. Na tela de componentes, deixe marcado **Iniciar com o Windows** se quiser o RDR Local sempre ligado em segundo plano.
 3. Ao final, marque *Abrir o RDR Local agora*. O painel abre em http://127.0.0.1:7070 e aparece um **ícone perto do relógio**.
 
@@ -24,7 +24,7 @@ Os dados ficam fora da pasta do programa: atualizar ou reinstalar **não apaga**
 
 **Vindo do `start.bat` (pasta antiga)?** Em *Configurações → Exportar configuração* na instalação antiga, e *Importar* na nova. Para os bancos, faça backup na aba Bancos e restaure na nova (os componentes são baixados de novo com *Instalar tudo*).
 
-**Instalação silenciosa (equipes):** `RDR-Local-Setup-1.8.3.exe /S`. Para outra pasta: `/D=C:\Ferramentas\RDR Local` (sempre o último parâmetro, sem aspas).
+**Instalação silenciosa (equipes):** `RDR-Local-Setup-1.10.0.exe /S`. Para outra pasta: `/D=C:\Ferramentas\RDR Local` (sempre o último parâmetro, sem aspas).
 
 **Gerar o instalador (desenvolvedores):** em Linux/macOS/WSL com `nsis` e `npm`, rode `bash installer/build.sh`. O resultado fica em `installer/dist/`, junto com o `.sha256`.
 
@@ -87,6 +87,8 @@ Web usa 80/443. Se outro servidor ocupa essas portas, pare-o ou troque as portas
 ## Como atualizar o RDR Local
 
 A atualização do próprio RDR Local é feita **rodando o instalador da versão nova por cima da instalada**, na mesma unidade (por exemplo, `C:`). Seus sites, bancos, certificados e configurações ficam em `C:\ProgramData\RDRLocal` e **não são tocados**.
+
+**Pelo painel (a partir da 1.10):** *Componentes e PHP → Verificar atualizações*. Se houver versão nova nas Releases do GitHub, a linha *RDR Local Server* mostra **Baixar e instalar**: o painel baixa o instalador, confere o SHA-256 publicado junto e abre o assistente. O resto do processo é o mesmo do passo a passo abaixo. Como o instalador ainda não tem assinatura digital, o SmartScreen pode avisar; confira o editor e o hash. Se a versão nova ainda não tiver o `.sha256` publicado, o painel não baixa nada e mostra o link da release.
 
 **Passo a passo**
 

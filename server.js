@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver
 'use strict';
 /**
  * RDR Local — ambiente local de hospedagem com HTTPS (Caddy, PHP, MariaDB, PostgreSQL, Redis, Mailpit).
@@ -29,7 +31,8 @@ const secrets = require('./lib/secrets');
 const phpini = require('./lib/phpini');
 const autostart = require('./lib/autostart');
 const updates = require('./lib/updates');
-let updCache = null;
+const appupdate = require('./lib/appupdate');
+const aifiles = require('./lib/aifiles');
 const procs = require('./lib/procs');
 const doctor = require('./lib/doctor');
 const term = require('./lib/term');
@@ -55,8 +58,9 @@ function state() {
     sites: sites.list(web).map((s) => ({ ...s, app: s.type === 'app' ? { ...apps.status(s.id), runtimeVersion: s.runtime === 'custom' ? '' : rts.resolve(s.runtime, s.rtVersion) } : undefined, procs: procs.status(s.id), tunnelUrl: procs.tunnelUrl(s.id), procCaps: procs.capabilities(s), caps: s.path ? { artisan: exists(path.join(s.path, 'artisan')), composer: exists(path.join(s.path, 'composer.json')), npm: exists(path.join(s.path, 'package.json')), git: isDir(path.join(s.path, '.git')) } : {} })),
     components: comps.listComponents(),
     runtimes: rts.summary(),
+    updates: updates.summary(),
     php: { installed: comps.phpInstalled(), default: comps.phpDefault(), versions: comps.phpInstalled().map((v) => ({ v, full: comps.version(`php-${v}`) })) },
-    settings: { panelUrl: sites.baseUrl(sites.panelDomain()), autoStartServices: !!cfg.autoStartServices, dnsMode: !!cfg.dnsMode, tld: cfg.tld, tlds: sites.TLDS, projectsRoot: cfg.projectsRoot, ports: cfg.ports },
+    settings: { panelUrl: sites.baseUrl(sites.panelDomain()), autoStartServices: !!cfg.autoStartServices, projectDocs: cfg.projectDocs !== false, autoCheckUpdates: cfg.autoCheckUpdates !== false, dnsMode: !!cfg.dnsMode, tld: cfg.tld, tlds: sites.TLDS, projectsRoot: cfg.projectsRoot, ports: cfg.ports },
     connection: db.connectionInfo(),
     pma: { installed: comps.isInstalled.phpmyadmin(), domain: sites.pmaDomain(), base: sites.pmaUrl(), db: sites.pmaUrl('__DB__') },
     adminer: { installed: comps.isInstalled.adminer(), domain: sites.dbDomain(), mariadb: sites.adminerUrl('mariadb'), postgres: sites.adminerUrl('postgres') },
@@ -109,14 +113,13 @@ const routes = {
     const j = (env) => JSON.stringify({ mcpServers: { 'rdr-local': { command: process.execPath, args: [script], ...(env ? { env: { RDR_MCP_ALLOW_SHELL: '1' } } : {}) } } }, null, 2);
     return { script, cli: `claude mcp add rdr-local -- "${process.execPath}" "${script}"`, json: j(false), jsonShell: j(true) };
   },
-  'GET /api/updates': async (_, q) => {
-    if (!updCache || q.get('fresh') === '1' || Date.now() - updCache.checkedAt > 600000) updCache = await updates.check();
-    return updCache;
-  },
+  'GET /api/updates': async (_, q) => updates.cached(q.get('fresh') === '1'),
   'POST /api/updates/apply': async (b) => {
     const t = String(b.id || '');
-    startJob(`Atualizar ${t}`, async (jl) => { await updates.apply(t, jl); updCache = null; }, 'update'); return ok();
+    startJob(`Atualizar ${t}`, async (jl) => { await updates.apply(t, jl); updates.invalidate(); }, 'update'); return ok();
   },
+  // Atualiza o próprio RDR Local: baixa o instalador da última release, confere o SHA-256 e abre o assistente.
+  'POST /api/updates/app': async () => { startJob('Atualizar o RDR Local', async (jl) => { await appupdate.install(jl); updates.invalidate(); }, 'appupdate'); return ok(); },
   'GET /api/autostart': async () => autostart.status(),
   'POST /api/autostart': async (b) => { if (b.enabled) await autostart.enable(); else await autostart.disable(); return autostart.status(); },
   'GET /api/db/backups': async () => ({ backups: backup.list(), schedule: cfg.backup }),
@@ -190,12 +193,27 @@ const routes = {
     const input = { type: 'app', name, path: dir, domain: b.domain, aliases: b.aliases, runtime, rtVersion: b.rtVersion || 'default', cmd: String(b.cmd || (tpl && tpl.cmd) || ''), appPort: b.appPort, cors: !!b.cors, env: b.env || '' };
     if (!useExisting && !(tpl && (tpl.files || tpl.remote))) fs.mkdirSync(dir, { recursive: true });
     // valida tudo antes de criar arquivos
-    if (runtime !== 'custom' && !rts.resolve(runtime, input.rtVersion)) throw new Error(`${rts.KINDS[runtime].label} não está instalado: instale em Componentes e PHP > Linguagens antes de criar o app.`);
+    // Runtime ausente: instala sozinho (Windows) dentro da própria tarefa, em vez de mandar o usuário ir a outra tela.
+    let autoVer = ''; let wantVer = '';
+    if (runtime !== 'custom' && !rts.resolve(runtime, input.rtVersion)) {
+      if (!IS_WIN || b.autoInstall === false) throw new Error(`${rts.KINDS[runtime].label} não está instalado: instale em Componentes e PHP > Linguagens antes de criar o app.`);
+      if (input.rtVersion && input.rtVersion !== 'default') { autoVer = String(input.rtVersion); input.rtVersion = 'default'; wantVer = autoVer; }
+      else {
+        const list = await rts.available(runtime).catch(() => []);
+        if (!list.length) throw new Error(`${rts.KINDS[runtime].label} não está instalado e não consegui consultar as versões disponíveis (sem internet?). Instale em Componentes e PHP > Linguagens.`);
+        autoVer = (list.find((x) => x.lts) || list[0]).v;
+      }
+    }
     if (!useExisting && tpl && (tpl.files || tpl.remote)) fs.mkdirSync(dir, { recursive: true });
-    const site = await sites.add({ ...input });
+    let site = await sites.add({ ...input });
     startJob(`Criar app ${name}`, async (jl) => {
+      if (autoVer) { jl(`${rts.KINDS[runtime].label} ainda não está instalado: baixando a versão ${autoVer} (pode levar alguns minutos)...`); await rts.install(runtime, jl, autoVer); if (wantVer) site = await sites.update(site.id, { rtVersion: wantVer }) || site; }
       if (!useExisting && tpl && tpl.files) { jl(`Criando arquivos (${tpl.label})...`); apps.scaffold(b.template, dir, name).forEach((f) => jl('  + ' + f)); }
       if (!useExisting && tpl && tpl.remote) await apps.scaffoldRemote(b.template, dir, name, jl);
+      if (!useExisting) { // projeto novo: CLAUDE.md, AGENTS.md e docs/ (depois do modelo, que pode recriar a pasta)
+        const made = aifiles.scaffold({ dir, name, kind: 'app', domain: site.domain, runtime, template: tpl ? tpl.label : '', cmd: site.cmd, appPort: site.appPort });
+        if (made.length) jl(`Arquivos para agentes de IA e documentação: ${made.join(', ')}`);
+      }
       if (b.installDeps !== false && runtime !== 'custom') {
         await apps.installDeps(site, jl);
         if (tpl && tpl.django) await apps.finishDjango(site, jl);
@@ -208,6 +226,7 @@ const routes = {
   // ----- runtimes (Node.js e Python) -----
   'GET /api/runtimes/available': async (_, q) => ({ list: await rts.available(q.get('rt')) }),
   'POST /api/runtimes/install': async (b) => { startJob(`Instalar ${rts.KINDS[b.rt] ? rts.KINDS[b.rt].label : b.rt} ${b.version}`, (jl) => rts.install(b.rt, jl, b.version), 'install'); return ok(); },
+  'POST /api/runtimes/install-latest': async (b) => { const rt = String(b.rt || ''); if (!rts.KINDS[rt]) throw new Error('Linguagem desconhecida.'); const v = await rts.pickVersion(rt); startJob(`Instalar ${rts.KINDS[rt].label} ${v}`, (jl) => rts.install(rt, jl, v), 'install'); return ok(); },
   'POST /api/runtimes/default': async (b) => { rts.setDefault(b.rt, b.version); return ok(); },
   'POST /api/runtimes/remove': async (b) => { rts.remove(b.rt, b.version); return ok(); },
   'POST /api/sites/artisan': async (b) => {
@@ -258,6 +277,11 @@ const routes = {
     const r = cfg.recipes.find((x) => x.id === id);
     startJob(`Publicar ${r.name}`, (jl) => deploy.publish(id, jl, { force: !!b.force }), 'deploy'); return ok();
   },
+  'POST /api/deploy/recipe/rollback': async (b) => {
+    const id = String(b.id); const r = cfg.recipes.find((x) => x.id === id); if (!r) throw new Error('Receita não encontrada.');
+    if (!(r.rollback || []).length) throw new Error('Esta receita não tem comandos de reversão.');
+    startJob(`Reverter ${r.name}`, (jl) => deploy.rollback(id, jl), 'deploy'); return ok();
+  },
   'POST /api/import/run': async (b) => importer.importSites({ kind: String(b.kind || ''), path: String(b.path || '') }, Array.isArray(b.keys) ? b.keys.map(String).slice(0, 200) : []),
   'POST /api/scan': async (b) => ({ added: await sites.scan(String(b.root || '').trim()) }),
   'POST /api/project': async (b) => { projects.create(b); return ok(); },
@@ -306,7 +330,7 @@ const routes = {
   'POST /api/backup/run-all': async () => { startJob('Backup de todos os bancos', (jl) => backup.runAll(jl), 'db'); return ok(); },
   'GET /api/config/export': async () => ({
     rdrLocal: 1, exportedAt: new Date().toISOString(), tld: cfg.tld, projectsRoot: cfg.projectsRoot, phpDefault: cfg.phpDefault,
-    dnsMode: !!cfg.dnsMode, ports: cfg.ports, backup: { ...cfg.backup, last: 0, lastMsg: '' },
+    dnsMode: !!cfg.dnsMode, projectDocs: cfg.projectDocs !== false, ports: cfg.ports, backup: { ...cfg.backup, last: 0, lastMsg: '' },
     sites: cfg.sites.map(({ name, path: p, domain, aliases, php, docroot, enabled, type, target, cors, env }) => ({ name, path: p, domain, aliases, php, docroot, enabled, type, target, cors, env })),
   }),
   'POST /api/config/import': async (b) => {
@@ -314,6 +338,7 @@ const routes = {
     if (d.tld && sites.TLDS.includes(d.tld)) cfg.tld = d.tld;
     if (typeof d.projectsRoot === 'string') cfg.projectsRoot = d.projectsRoot;
     if (typeof d.phpDefault === 'string') cfg.phpDefault = d.phpDefault;
+    if (typeof d.projectDocs === 'boolean') cfg.projectDocs = d.projectDocs;
     if (d.ports && typeof d.ports === 'object') for (const [k, v] of Object.entries(d.ports)) { const n = Number(v); if (k in cfg.ports && Number.isInteger(n) && n > 0 && n < 65536) cfg.ports[k] = n; }
     if (d.backup) { try { backup.setSchedule(d.backup); } catch (_) { /* mantém */ } }
     if (typeof d.dnsMode === 'boolean' && d.dnsMode !== !!cfg.dnsMode) { cfg.dnsMode = d.dnsMode; save(); if (d.dnsMode) await services.start('dns').catch(() => {}); else await services.stop('dns').catch(() => {}); }
@@ -346,6 +371,8 @@ const routes = {
       }
     }
     if (b.autoStartServices !== undefined) cfg.autoStartServices = !!b.autoStartServices;
+    if (b.projectDocs !== undefined) cfg.projectDocs = !!b.projectDocs;
+    if (b.autoCheckUpdates !== undefined) cfg.autoCheckUpdates = !!b.autoCheckUpdates;
     if (b.projectsRoot !== undefined) cfg.projectsRoot = String(b.projectsRoot).trim();
     if (b.phpDefault !== undefined) { cfg.phpDefault = b.phpDefault; comps.writeShims(); }
     if (b.ports) {
@@ -406,6 +433,7 @@ server.on('error', (e) => {
 });
 server.listen(PANEL_PORT, '127.0.0.1', () => {
   backup.startScheduler();
+  updates.startAuto();
   if (cfg.autoStartServices) setTimeout(() => services.all('start').catch((e) => log('Início automático dos serviços: ' + e.message.split('\n')[0])), 1500);
   log(`RDR Local em http://127.0.0.1:${PANEL_PORT}`);
   if (IS_WIN && !process.argv.includes('--no-open')) spawn('cmd', ['/c', 'start', '', `http://127.0.0.1:${PANEL_PORT}`], { windowsHide: true });

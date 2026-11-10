@@ -129,3 +129,8 @@ O **Diagnóstico** confere se o runtime existe, se o app está ligado e se algo 
 - Variáveis de ambiente ficam em `config.json` em texto puro: não guarde segredos de produção.
 - O **Túnel público** (Cloudflared) também funciona com apps; qualquer pessoa com o link acessa o app enquanto o túnel estiver ligado.
 - O comando de início roda com as suas permissões: só use projetos em que você confia.
+
+## Linguagem não instalada ao criar um app
+No Windows, se Node.js, Python, Go ou JDK ainda não estiverem instalados, **Novo app** baixa sozinho a versão LTS mais nova (JDK: Temurin, com conferência SHA-256) como primeiro passo da tarefa de criação; leva alguns minutos e aparece no log. Para escolher outra versão, instale antes em *Componentes e PHP → Linguagens*. Projetos Spring Boot são gerados para o JDK instalado (17, 21 ou 25).
+
+Em *Componentes e PHP → Linguagens*, as linguagens ainda não instaladas aparecem como linhas com o botão **Instalar versão LTS** (um clique). Para escolher outra versão, use a lista abaixo ("Ver versões disponíveis"). Se a lista do JDK não carregar, o painel mostra o motivo (internet, proxy ou antivírus bloqueando `api.adoptium.net`).

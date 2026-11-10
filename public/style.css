@@ -22,6 +22,8 @@ body{background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,"Segoe UI",san
 #nav a:hover{background:rgba(255,255,255,.07)}
 #nav a.on{background:var(--ac);color:#fff}
 .side-foot{margin-top:auto;font-size:12px;padding:8px 8px 4px}
+.side-credit{font-size:10px;padding:0 8px 8px;color:var(--side-tx);opacity:.6;text-align:center}
+.side-credit a{color:inherit}
 .side-ver{font-size:10px;letter-spacing:.14em;font-weight:700;padding:4px 8px 2px;color:var(--side-tx);opacity:.7;border-top:1px solid rgba(255,255,255,.08);text-align:center}
 .app-foot{margin-top:auto;position:sticky;bottom:-20px;background:var(--bg);margin-bottom:-20px;padding:10px 0 14px;text-align:center;font-size:12px;color:var(--mut)}
 .app-foot b{color:var(--tx)}

@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 | Copyright 2026 RDR Digital - https://github.com/RDRdigitalFloripa/rdrlocalserver -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -20,13 +21,14 @@
     <a href="#diagnostico" data-p="diagnostico"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Diagnóstico</span></a>
     <a href="#email" data-p="email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>E-mail</span></a>
     <a href="#ssl" data-p="ssl"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Certificado SSL</span></a>
-    <a href="#componentes" data-p="componentes"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Componentes e PHP</span></a>
+    <a href="#componentes" data-p="componentes"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Componentes e PHP</span><span class="badge" id="navUpd" hidden title="Atualizações disponíveis" style="margin:0 0 0 auto"></span></a>
     <a href="#logs" data-p="logs"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/></svg><span>Logs</span></a>
     <a href="#config" data-p="config"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Configurações</span></a>
     <a href="#ajuda" data-p="ajuda"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span>Ajuda</span></a>
   </nav>
   <div class="side-foot muted" id="sideFoot"></div>
-  <div class="side-ver">RDR LOCAL SERVER v1.8.3</div>
+  <div class="side-ver">RDR LOCAL SERVER v1.10.0</div>
+  <div class="side-credit">Criado por <a href="https://github.com/RDRdigitalFloripa/rdrlocalserver" target="_blank" rel="noopener">RDR Digital</a> · Apache-2.0</div>
 </aside>
 
 <main>
@@ -258,7 +260,7 @@
     </div>
     <div class="card">
       <div class="card-h"><h2>Atualizações</h2><button class="sec sm" id="btnUpdCheck">Verificar atualizações</button></div>
-      <div id="updList" class="muted small">Clique em “Verificar atualizações” para comparar com as versões mais novas (Caddy, PHP, Node.js, Python, Mailpit, Meilisearch, Cloudflared, Adminer). MariaDB e PostgreSQL não são atualizados automaticamente, para não arriscar seus dados.</div>
+      <div id="updList" class="muted small">Clique em “Verificar atualizações” para comparar com as versões mais novas (o próprio RDR Local, Caddy, PHP, Node.js, Python, Go, JDK, Composer, phpMyAdmin, Mailpit, Meilisearch, Cloudflared, Adminer). MariaDB e PostgreSQL não são atualizados automaticamente, para não arriscar seus dados.</div>
     </div>
     <div class="card"><h2>Componentes</h2><div id="compList"></div></div>
     <div class="card">
@@ -295,6 +297,10 @@
         <span>Abrir o RDR Local junto com o Windows<br><span class="muted small" id="cfBootHint">Cria uma tarefa agendada (como Administrador, sem janela e sem pedir permissão a cada login). O painel continua em <code>http://127.0.0.1:7070</code>.</span></span></label>
       <label class="row" style="gap:10px;align-items:flex-start;margin-top:8px"><input type="checkbox" id="cfAutoSvc" style="margin-top:4px">
         <span>Ligar os serviços automaticamente ao abrir o RDR Local<br><span class="muted small">Web, bancos, Redis, Mailpit… os que estiverem instalados (igual a “Iniciar tudo”).</span></span></label>
+      <label class="row" style="gap:10px;align-items:flex-start;margin-top:8px"><input type="checkbox" id="cfDocs" style="margin-top:4px">
+        <span>Projetos novos já com <code>CLAUDE.md</code>, <code>AGENTS.md</code> e a pasta <code>docs/</code><br><span class="muted small">Ao criar Laravel, WordPress, pasta PHP ou app, o RDR Local cria os dois arquivos de instruções para agentes de IA (respostas em português do Brasil) e a pasta <code>docs/</code> com os documentos no padrão <code>NN-DD-MM-AAAA-nome.md</code>. Nunca sobrescreve arquivos existentes e não mexe em projetos clonados ou importados.</span></span></label>
+      <label class="row" style="gap:10px;align-items:flex-start;margin-top:8px"><input type="checkbox" id="cfAutoUpd" style="margin-top:4px">
+        <span>Verificar atualizações automaticamente (a cada 6 horas)<br><span class="muted small">Consulta GitHub, php.net e outros sites oficiais e mostra um selo em <b>Componentes e PHP</b>. Nada é instalado sozinho.</span></span></label>
       <h2 style="margin-top:18px">DNS local</h2>
       <label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" id="cfDns" style="margin-top:4px">
         <span>Resolver os domínios por um DNS local (recomendado)<br><span class="muted small">Permite subdomínios com curinga (ex.: <code>*.meu-app.test</code> para multi-tenant) e dispensa depender do arquivo hosts. No Windows cria uma regra de DNS só para a terminação do RDR (precisa de Administrador e da porta 53/UDP livre). O arquivo hosts continua sendo atualizado quando possível.</span></span></label>
@@ -448,6 +454,7 @@
         <label class="full">Passos extras depois (um comando por linha)<textarea name="extra" rows="3" placeholder="docker exec $(docker ps -q -f name=listgo_app | head -n1) php artisan optimize:clear"></textarea></label>
       </div>
       <label class="full" data-m="custom" style="display:none">Comandos (um por linha, rodam em ordem; para no primeiro que falhar)<textarea name="cmds" rows="5" spellcheck="false"></textarea></label>
+      <label class="full" data-m="custom" style="display:none">Comandos de reversão (opcional; habilitam o botão "Reverter". No Swarm: <code>docker service rollback &lt;serviço&gt;</code>)<textarea name="rollback" rows="2" spellcheck="false"></textarea></label>
       <label class="row full" style="gap:8px"><input type="checkbox" name="checkBuild" checked><span>Exigir build do GitHub Actions concluído antes de publicar</span></label>
     </div>
     <div class="row end" style="margin-top:10px"><button type="button" class="sec" id="pbRcCancel">Cancelar</button><button type="submit">Salvar</button></div>
@@ -532,6 +539,7 @@
       <label>Aliases (opcional)<input name="aliases" placeholder="www.minha-api.test"></label>
       <label class="full">Variáveis de ambiente (opcional, uma por linha)<textarea name="env" rows="3" spellcheck="false" placeholder="NODE_ENV=development&#10;DATABASE_URL=postgres://postgres@127.0.0.1:5433/app" style="font-family:monospace"></textarea></label>
       <label class="row" style="gap:8px" id="lbAppDeps"><input type="checkbox" name="installDeps" checked> Instalar dependências ao criar (npm install / venv + pip)</label>
+      <p class="muted small" style="margin:0">Se a linguagem (Node, Python, Go ou JDK) ainda não estiver instalada, ela é baixada sozinha ao criar o app (versão LTS mais nova).</p>
       <label class="row" style="gap:8px"><input type="checkbox" name="autoStart" checked> Ligar junto com o Servidor Web</label>
       <label class="row" style="gap:8px"><input type="checkbox" name="cors"> Liberar CORS (qualquer origem)</label>
     </div>
