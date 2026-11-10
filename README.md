@@ -21,13 +21,35 @@ Ambiente local de hospedagem para Windows com HTTPS automático: sites PHP/Larav
 - **Diagnóstico**: portas em conflito (ex.: ServBay), extensões do PHP, hosts, certificado.
 - **Painel da máquina**: processamento, memória, disco e **rede** (download/upload em tempo real).
 
-## Instalação
+## Primeiros passos
 
-1. Baixe `RDR-Local-Setup-<versão>.exe` na página de *Releases* e confira o `.sha256`.
-2. Execute como Administrador. Programa em `C:\Program Files\RDR Local`, dados em `C:\ProgramData\RDRLocal`.
-3. Abra o painel, clique em **Instalar tudo** e depois em **Iniciar tudo**.
+**Precisa de:** Windows 10/11 (64 bits), conta de Administrador, internet na primeira vez e as portas 80, 443 e 7070 livres (ServBay, Laragon ou XAMPP ligados ao mesmo tempo disputam essas portas).
 
-Guia completo: [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
+### 1. Instalar (para usar, sem clonar o repositório)
+
+1. Baixe `RDR-Local-Setup-<versão>.exe` e o `.sha256` na página de [Releases](https://github.com/RDRdigitalFloripa/rdrlocalserver/releases). Para conferir o arquivo: `Get-FileHash .\RDR-Local-Setup-<versão>.exe -Algorithm SHA256` (o valor deve ser igual ao do `.sha256`).
+2. Execute como Administrador. Se o Windows mostrar **"O Windows protegeu seu PC"**, clique em *Mais informações → Executar assim mesmo*: o instalador não é assinado digitalmente (o projeto é gratuito); a integridade se confere pelo SHA-256.
+3. Abra o painel (ícone perto do relógio ou `http://127.0.0.1:7070`), clique em **Instalar tudo** e depois em **Iniciar tudo**.
+4. Se o cadeado do navegador não ficar verde: **Certificado SSL → Confiar na CA local** e reabra o navegador.
+5. Algo não subiu? Abra **Diagnóstico**: ele mostra portas em conflito, extensões do PHP e problemas no hosts ou no certificado.
+
+Programa em `C:\Program Files\RDR Local`, dados em `C:\ProgramData\RDRLocal` (atualizar ou reinstalar não apaga bancos nem sites). Guia completo: [docs/02-guia-de-instalacao.md](docs/02-guia-de-instalacao.md).
+
+### 2. Seu primeiro projeto
+
+1. No Painel, **Novo site** (Laravel, WordPress ou pasta PHP) ou **Novo app** (Node, Python, Go, Java).
+2. O projeto já nasce com `CLAUDE.md` e `AGENTS.md` (regras para agentes de IA, inclusive "sempre em português do Brasil") e com `docs/`: visão geral, **especificação**, **tarefas** e **diário**.
+3. Preencha a especificação (ou peça ao seu agente) **antes** de programar. Tarefas e diário atualizam o andamento no Painel. Em um projeto que já existe: **Ferramentas do projeto → Plano → Ativar plano**.
+
+Detalhes em [docs/16-plano-do-projeto.md](docs/16-plano-do-projeto.md).
+
+### 3. Atualizar
+
+**Componentes e PHP → Verificar atualizações → Baixar e instalar** (o painel confere o SHA-256 e abre o instalador; seus dados ficam). Também serve rodar o novo instalador por cima. Se você usa o código clonado: `git pull` e *Reiniciar o painel* no ícone da bandeja.
+
+### Quer mexer no código?
+
+Clone o repositório e veja [Desenvolvimento](#desenvolvimento): `start.bat` (instala o Node.js via winget se faltar) ou `node server.js`; `npm test` roda a suíte ([TESTING.md](TESTING.md)).
 
 ## Documentação
 
